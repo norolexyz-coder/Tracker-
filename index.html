@@ -1,0 +1,3123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="My Tracker"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#f4c6c6" id="themeColorMeta"/>
+<title>My Daily Tracker</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png"/>
+<script src="https://accounts.google.com/gsi/client" async defer onload="onGisLoaded()"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══ THEME VARIABLES ═══ */
+:root{
+  --p1:#f4c6c6;--p2:#f9ddc5;--p3:#c6e8d8;--p4:#c6dcf4;--p5:#dcc6f4;
+  --bg1:#fce8e8;--bg2:#fdf0e0;--bg3:#e8f6ee;--bg4:#e0ecfc;
+  --accent:#e8806a;--accent2:#5a9e7a;
+  --text:#3d3330;--muted:#9a8880;--sub:#6a5a55;
+  --card:rgba(255,255,255,0.76);--card2:rgba(255,255,255,0.55);
+  --border:rgba(180,150,140,0.18);--border2:rgba(180,150,140,0.3);
+  --shadow:0 4px 24px rgba(180,120,100,0.09);
+  --shadow2:0 2px 12px rgba(180,120,100,0.07);
+  --radius:18px;--radius2:12px;--radius3:8px;
+  --nav-h:62px;--header-h:44px;
+}
+/* Ocean Blue */
+body.theme-ocean{
+  --p1:#b3d4f5;--p2:#b3e8f0;--p3:#b3f0d4;--p4:#b3c4f5;--p5:#c4b3f5;
+  --bg1:#e0f0ff;--bg2:#e0f8ff;--bg3:#e0fff4;--bg4:#e8e0ff;
+  --accent:#2a6aad;--accent2:#2a9a6a;--text:#1a2a3a;--muted:#5a7a9a;--sub:#3a5a7a;
+}
+/* Forest Green */
+body.theme-forest{
+  --p1:#b3e8c8;--p2:#c8f0b3;--p3:#b3f0e0;--p4:#e0f0b3;--p5:#c8e8b3;
+  --bg1:#e0f8ec;--bg2:#f0f8e0;--bg3:#e0f8f4;--bg4:#f4f8e0;
+  --accent:#2a7a4a;--accent2:#6a9a2a;--text:#1a2a1a;--muted:#4a7a5a;--sub:#3a6a4a;
+}
+/* Sunset Orange */
+body.theme-sunset{
+  --p1:#f5c8a0;--p2:#f5e0a0;--p3:#f5a0a0;--p4:#f0c4a0;--p5:#e8b0a0;
+  --bg1:#fff0e0;--bg2:#fff8e0;--bg3:#ffe8e0;--bg4:#ffecd8;
+  --accent:#c86020;--accent2:#c89020;--text:#3a2010;--muted:#9a7050;--sub:#7a5030;
+}
+/* Royal Purple */
+body.theme-purple{
+  --p1:#d4b3f5;--p2:#e8b3f5;--p3:#b3b3f5;--p4:#c4b3f5;--p5:#f5b3e8;
+  --bg1:#f0e8ff;--bg2:#f8e8ff;--bg3:#e8e8ff;--bg4:#ffe8f8;
+  --accent:#6a2aad;--accent2:#ad2a8a;--text:#2a1a3a;--muted:#7a5a9a;--sub:#5a3a7a;
+}
+/* Dark Mode */
+body.theme-dark{
+  --p1:#3a2a2a;--p2:#3a3020;--p3:#1a3028;--p4:#1a2838;--p5:#2a1a38;
+  --bg1:#1a1212;--bg2:#1a1810;--bg3:#101a14;--bg4:#101420;
+  --accent:#e88070;--accent2:#70c890;--text:#e8dcd8;--muted:#8a7a78;--sub:#b8a8a4;
+  --card:rgba(40,30,28,0.85);--card2:rgba(40,30,28,0.6);
+  --border:rgba(100,80,70,0.3);--border2:rgba(100,80,70,0.5);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 30%,var(--bg3) 60%,var(--bg4) 100%);
+  min-height:100vh;color:var(--text);
+  padding-bottom:calc(var(--nav-h) + 16px);
+  padding-top:calc(var(--header-h) + 8px);
+  transition:background 0.4s,color 0.3s;
+}
+
+
+/* ═══ LOGIN ═══ */
+#loginScreen{position:fixed;inset:0;z-index:4000;background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#loginScreen.hidden{display:none}
+.login-box{background:var(--card);border-radius:24px;padding:32px 26px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.1)}
+.login-logo{font-size:3rem;margin-bottom:8px}
+.login-title{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);margin-bottom:5px}
+.login-sub{font-size:0.83rem;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.google-btn{width:100%;padding:13px 18px;background:var(--card);border:1.5px solid var(--border2);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.93rem;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.18s;box-shadow:var(--shadow2)}
+.google-btn:hover{background:var(--p2);border-color:var(--p1);transform:translateY(-1px)}
+.google-icon{width:20px;height:20px}
+.login-note{font-size:0.77rem;color:var(--muted);margin-top:16px;line-height:1.6}
+.login-error{background:#fde8e8;border:1px solid #f0c0c0;border-radius:8px;padding:9px 12px;font-size:0.8rem;color:#b03030;margin-bottom:12px;display:none;text-align:left}
+
+/* ═══ SETUP (JSONBin) ═══ */
+#setupScreen{position:fixed;inset:0;z-index:3000;background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#setupScreen.hidden{display:none}
+.setup-box{background:var(--card);border-radius:24px;padding:26px 22px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,0.1)}
+.setup-logo{font-size:2.4rem;text-align:center;margin-bottom:5px}
+.setup-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--text);text-align:center;margin-bottom:4px}
+.setup-sub{font-size:0.82rem;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.5}
+.setup-steps{counter-reset:step;list-style:none;margin-bottom:16px}
+.setup-steps li{counter-increment:step;display:flex;gap:9px;margin-bottom:11px;font-size:0.84rem;color:var(--text);line-height:1.5}
+.setup-steps li::before{content:counter(step);background:var(--p1);color:var(--accent);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.71rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.setup-steps a{color:#2a6aad;text-decoration:none;font-weight:600}
+.setup-field{margin-bottom:11px}
+.setup-field label{display:block;font-size:0.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.setup-field input{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--border2);background:var(--card2);font-family:'DM Sans',sans-serif;font-size:0.86rem;color:var(--text);outline:none;transition:border 0.2s}
+.setup-field input:focus{border-color:var(--accent)}
+.setup-field input::placeholder{color:var(--muted);font-size:0.79rem}
+.setup-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--p1),var(--p2));color:var(--accent);border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;transition:all 0.18s;margin-top:2px}
+.setup-btn:hover{filter:brightness(0.94);transform:translateY(-1px)}
+.setup-btn:disabled{opacity:0.6;transform:none}
+.setup-skip{display:block;text-align:center;margin-top:10px;font-size:0.79rem;color:var(--muted);cursor:pointer;text-decoration:underline}
+.setup-error{background:#fde8e8;border:1px solid #f0c0c0;border-radius:7px;padding:8px 11px;font-size:0.8rem;color:#b03030;margin-bottom:10px;display:none}
+.setup-note{background:rgba(100,200,140,0.15);border:1px solid rgba(100,180,140,0.25);border-radius:7px;padding:8px 11px;font-size:0.78rem;color:var(--accent2);margin-bottom:12px;line-height:1.5}
+
+/* ═══ TOP HEADER BAR ═══ */
+#topBar{position:fixed;top:0;left:0;right:0;z-index:1000;height:var(--header-h);background:rgba(255,255,255,0.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:8px}
+body.theme-dark #topBar{background:rgba(26,18,18,0.88)}
+.topbar-left{display:flex;align-items:center;gap:8px}
+.topbar-logo{font-size:1.2rem}
+.topbar-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:6px}
+/* badge styles removed - shown in home tab stats only */
+.user-av{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--p1);cursor:pointer}
+.user-av-placeholder{width:28px;height:28px;border-radius:50%;background:var(--p1);display:flex;align-items:center;justify-content:center;font-size:0.8rem;cursor:pointer;border:2px solid var(--border)}
+
+/* ═══ SYNC BAR ═══ */
+#syncBar{position:fixed;top:var(--header-h);left:0;right:0;z-index:999;padding:5px 16px;text-align:center;font-size:0.76rem;font-weight:500;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;min-height:0;overflow:hidden;max-height:0}
+#syncBar.active{max-height:32px;padding:5px 16px}
+#syncBar.syncing{background:rgba(198,220,244,0.97);color:#1a3a6a;backdrop-filter:blur(8px)}
+#syncBar.saved{background:rgba(198,232,216,0.97);color:#1a5e38;backdrop-filter:blur(8px)}
+#syncBar.error{background:rgba(253,232,232,0.97);color:#b03030;backdrop-filter:blur(8px)}
+#syncBar.loading{background:rgba(253,221,197,0.97);color:#7a4a20;backdrop-filter:blur(8px)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sync-dot.spin{animation:spin 0.9s ease-in-out infinite}
+@keyframes spin{0%,100%{opacity:1}50%{opacity:0.15}}
+
+/* ═══ BOTTOM NAV ═══ */
+#bottomNav{position:fixed;bottom:0;left:0;right:0;z-index:1000;height:var(--nav-h);background:rgba(255,255,255,0.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0 4px;padding-bottom:env(safe-area-inset-bottom)}
+body.theme-dark #bottomNav{background:rgba(26,18,18,0.92)}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:12px;cursor:pointer;transition:all 0.18s;min-width:52px;border:none;background:transparent}
+.nav-btn.active{background:var(--p1)}
+.nav-icon{font-size:1.3rem;line-height:1}
+.nav-label{font-size:0.6rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;line-height:1}
+.nav-btn.active .nav-label{color:var(--accent)}
+
+/* ═══ TAB PAGES ═══ */
+.tab-page{display:none;padding:14px 14px 0;max-width:860px;margin:0 auto}
+.tab-page.active{display:block}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px 18px;box-shadow:var(--shadow);backdrop-filter:blur(10px);margin-bottom:16px;transition:background 0.3s}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:14px 14px 12px;box-shadow:var(--shadow2);margin-bottom:10px;transition:background 0.3s}
+.card-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.card-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text)}
+.card-sub{font-size:0.75rem;color:var(--muted);margin-top:1px}
+.section-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+/* ═══ BUTTONS ═══ */
+.btn{padding:8px 14px;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 0.18s;display:inline-flex;align-items:center;gap:5px}
+.btn-p1{background:var(--p1);color:var(--accent)}.btn-p2{background:var(--p2);color:#7a4a20}
+.btn-p3{background:var(--p3);color:var(--accent2)}.btn-p4{background:var(--p4);color:#1e3e6e}
+.btn-p5{background:var(--p5);color:#4a2a7a}
+.btn-ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+.btn-danger{background:#fde8e8;color:#b03030;border:1px solid #f0c0c0}
+.btn-accent{background:var(--accent);color:#fff}
+.btn:hover{filter:brightness(0.94);transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn-sm{padding:4px 10px;font-size:0.74rem;border-radius:7px}
+.btn-xs{padding:2px 7px;font-size:0.68rem;border-radius:5px}
+.btn-full{width:100%;justify-content:center}
+
+/* ═══ INPUTS ═══ */
+.inp{width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border2);background:var(--card2);font-family:'DM Sans',sans-serif;font-size:0.86rem;color:var(--text);outline:none;transition:border 0.2s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--muted);font-size:0.82rem}
+.inp-label{display:block;font-size:0.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+textarea.inp{resize:vertical;line-height:1.6}
+.inp-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.inp-group{flex:1;min-width:90px}
+
+/* ═══ GRID LAYOUTS ═══ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(min-width:600px){.grid2{gap:12px}.grid3{gap:10px}}
+
+/* ═══ MODALS ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,20,15,0.4);backdrop-filter:blur(5px);z-index:600;align-items:center;justify-content:center;padding:16px;padding-bottom:calc(var(--nav-h) + 16px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:20px;padding:20px 18px 22px;width:100%;max-width:560px;max-height:calc(100vh - var(--nav-h) - 40px);overflow-y:auto;box-shadow:0 4px 40px rgba(0,0,0,0.18);transition:background 0.3s}
+.modal-pill{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 16px}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.modal-close{float:right;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);line-height:1;padding:0 2px;margin-top:-2px}
+
+/* ═══ UNDO TOAST ═══ */
+#undoToast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:#2a2a2a;color:#fff;border-radius:10px;padding:10px 16px;font-size:0.82rem;display:flex;align-items:center;gap:10px;z-index:700;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap}
+#undoToast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+#undoToast button{background:var(--p1);color:var(--accent);border:none;border-radius:6px;padding:3px 10px;font-size:0.78rem;font-weight:600;cursor:pointer}
+
+/* ═══ HOME TAB ═══ */
+.quote-card{background:linear-gradient(135deg,var(--p4),var(--p5));border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden}
+.quote-card::before{content:'"\201D';position:absolute;top:-10px;right:10px;font-size:6rem;color:rgba(255,255,255,0.15);font-family:serif;line-height:1}
+.quote-text{font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--text);line-height:1.6;margin-bottom:6px}
+.quote-author{font-size:0.75rem;color:var(--sub);font-weight:500}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:18px 10px;text-align:center;box-shadow:var(--shadow2)}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--accent);font-weight:600;line-height:1}
+.stat-label{font-size:0.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:3px}
+.mood-row{display:flex;justify-content:space-around;padding:8px 0 4px}
+.mood-btn{font-size:2rem;cursor:pointer;border:none;background:transparent;border-radius:12px;padding:8px 10px;transition:all 0.15s;position:relative}
+.mood-btn.selected{background:var(--p1);transform:scale(1.15)}
+.mood-btn::after{content:attr(data-label);position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:0.6rem;color:var(--muted);white-space:nowrap}
+.todo-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;transition:background 0.15s;cursor:pointer}
+.todo-item:hover{background:var(--card2)}
+.todo-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;background:var(--card)}
+.todo-item.done .todo-check{background:var(--p3);border-color:var(--accent2)}
+.todo-item.done .todo-text{text-decoration:line-through;color:var(--muted)}
+.todo-text{flex:1;font-size:0.87rem;color:var(--text)}
+.todo-del{font-size:0.8rem;color:var(--muted);cursor:pointer;padding:0 3px;opacity:0.6}
+.todo-del:hover{opacity:1;color:#c05050}
+.notes-area{width:100%;min-height:110px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);font-family:'DM Sans',sans-serif;font-size:0.86rem;color:var(--text);resize:none;outline:none;transition:border 0.2s;line-height:1.6}
+.notes-area:focus{border-color:var(--accent)}
+.notes-area::placeholder{color:var(--muted)}
+
+/* ═══ STREAK / FREEZE ═══ */
+.streak-big{display:flex;align-items:center;justify-content:center;gap:12px}
+.streak-num{font-family:'Playfair Display',serif;font-size:2.8rem;color:var(--accent);font-weight:600;line-height:1}
+.streak-fire{font-size:2.2rem}
+.freeze-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.freeze-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(100,180,220,0.15);border:1px solid rgba(100,180,220,0.3);border-radius:20px;padding:4px 12px;font-size:0.79rem;color:#2a6a9a;font-weight:500}
+.use-freeze-btn{font-size:0.74rem;background:rgba(100,180,220,0.2);color:#1a5a8a;border:1px solid rgba(100,180,220,0.4);border-radius:6px;padding:2px 9px;cursor:pointer}
+
+/* ═══ STUDY TAB ═══ */
+/* Pomodoro */
+.timer-display{text-align:center;padding:20px 0 10px}
+.timer-time{font-family:'DM Sans',sans-serif;font-size:1.9rem;color:var(--accent);font-weight:700;letter-spacing:1px;line-height:1}
+.timer-label{font-size:0.8rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em}
+.timer-session{font-size:0.79rem;color:var(--sub);margin-top:3px}
+.timer-ring{width:140px;height:140px;margin:0 auto 8px;position:relative}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:8;transition:stroke-dashoffset 0.5s linear}
+.timer-ring .bg{stroke:var(--border)}
+.timer-ring .prog{stroke:var(--accent)}
+.timer-ring .break-prog{stroke:var(--accent2)}
+.timer-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.preset-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.preset-tab{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-size:0.77rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.preset-tab.active{background:var(--p1);border-color:transparent;color:var(--accent)}
+.custom-timer-fields{display:none;gap:8px;margin-top:8px;flex-wrap:wrap}
+.custom-timer-fields.show{display:flex}
+.custom-field{flex:1;min-width:80px}
+.custom-field label{font-size:0.71rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;display:block}
+.custom-field input{width:100%;padding:8px;border-radius:8px;border:1.5px solid var(--border2);background:var(--card2);font-size:0.9rem;color:var(--text);text-align:center;outline:none}
+
+/* Task tabs */
+.task-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.task-tab{padding:4px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-size:0.76rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:4px}
+.task-tab.active{background:var(--p1);border-color:transparent;color:var(--accent)}
+
+/* Cycle cards */
+.cycle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;margin-bottom:8px}
+.cycle-item{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;transition:all 0.2s}
+.cycle-item.active-day{border-color:var(--p1);background:rgba(244,198,198,0.3)}
+.cycle-item.done{background:rgba(198,232,216,0.4);border-color:var(--p3)}
+.cycle-date{font-size:0.67rem;color:var(--muted);margin-bottom:2px}
+.cycle-label{font-size:0.77rem;font-weight:500;color:var(--text);margin-bottom:3px;word-break:break-word}
+.cycle-interval{font-size:0.63rem;color:var(--muted);margin-bottom:3px}
+.cycle-badge{font-size:0.63rem;background:var(--p1);color:var(--accent);border-radius:6px;padding:2px 6px;margin-bottom:5px;display:inline-block}
+.cycle-item.done .cycle-badge{background:var(--p3);color:var(--accent2)}
+.check-btn{padding:3px 9px;font-size:0.73rem;border-radius:7px;background:var(--p1);color:var(--accent);border:none;cursor:pointer;transition:all 0.15s}
+.check-btn:disabled{opacity:0.4;cursor:default}
+.cycle-item.done .check-btn{background:var(--p3);color:var(--accent2)}
+.cycle-note{font-size:0.71rem;color:var(--muted);margin:4px 0 9px;font-style:italic;text-align:center}
+.exp-panel{display:none;margin-top:6px;border-top:1px solid var(--border);padding-top:9px}
+.exp-panel.open{display:block}
+.exp-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:6px}
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:5px}
+
+/* Journal */
+.log-nav{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.log-nav-btn{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.8rem;color:var(--text);transition:all 0.15s}
+.log-nav-btn:hover{background:var(--p3)}
+.log-date-label{flex:1;text-align:center;font-size:0.82rem;font-weight:600;color:var(--sub)}
+.log-field-label{font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block}
+.log-area{width:100%;padding:9px 11px;border-radius:9px;border:1.5px solid var(--border);background:var(--card2);font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);resize:vertical;outline:none;transition:border 0.2s;line-height:1.6;margin-bottom:10px}
+.log-area:focus{border-color:var(--accent2)}
+.log-area::placeholder{color:var(--muted)}
+.save-status{font-size:0.76rem;color:var(--accent2);min-height:14px;text-align:center;transition:opacity 0.4s}
+
+/* Flashcards */
+.flashcard-scene{width:100%;height:160px;perspective:600px;cursor:pointer;margin-bottom:12px}
+.flashcard-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+.flashcard-inner.flipped{transform:rotateY(180deg)}
+.flashcard-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;padding:16px;text-align:center}
+.flashcard-front{background:linear-gradient(135deg,var(--p4),var(--p5));border:1px solid var(--border)}
+.flashcard-back{background:linear-gradient(135deg,var(--p3),var(--p2));border:1px solid var(--border);transform:rotateY(180deg)}
+.flashcard-q{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text)}
+.flashcard-a{font-size:0.9rem;color:var(--text);line-height:1.6}
+.flashcard-hint{font-size:0.7rem;color:var(--muted);margin-top:6px}
+.fc-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fc-count{font-size:0.79rem;color:var(--muted)}
+.fc-actions{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+
+/* Formula sheet */
+.formula-item{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:all 0.15s}
+.formula-item:hover{border-color:var(--accent)}
+.formula-subject{font-size:0.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px}
+.formula-name{font-size:0.88rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.formula-expr{font-family:monospace;font-size:0.92rem;color:var(--accent);background:var(--p4);border-radius:5px;padding:4px 9px;display:inline-block;margin-bottom:6px}
+.formula-desc{font-size:0.8rem;color:var(--sub);line-height:1.5;display:none}
+.formula-item.expanded .formula-desc{display:block}
+
+/* Mistake diary */
+.mistake-item{background:var(--card2);border-left:3px solid var(--p1);border-radius:0 9px 9px 0;padding:10px 12px;margin-bottom:8px}
+.mistake-subject{font-size:0.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px}
+.mistake-text{font-size:0.85rem;color:var(--text);margin-bottom:3px}
+.mistake-correct{font-size:0.81rem;color:var(--accent2);font-style:italic}
+.mistake-date{font-size:0.68rem;color:var(--muted);margin-top:3px}
+
+/* Reading tracker */
+.book-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 13px;margin-bottom:9px}
+.book-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.book-name{font-weight:600;font-size:0.9rem;color:var(--text)}
+.book-pct{font-size:0.84rem;font-weight:700;color:var(--accent)}
+.book-progress{background:var(--border);border-radius:20px;height:7px;overflow:hidden;margin-bottom:5px}
+.book-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p3),var(--accent2));transition:width 0.4s}
+.book-stats{font-size:0.72rem;color:var(--muted);display:flex;justify-content:space-between}
+
+/* ═══ GOALS TAB ═══ */
+.goal-tabs{display:flex;gap:5px;margin-bottom:13px}
+.gtab{flex:1;padding:7px 4px;border-radius:9px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.15s;color:var(--muted);text-align:center;font-weight:500}
+.gtab.active{background:var(--p4);border-color:rgba(100,140,220,0.4);color:#1a3a6a;font-weight:700}
+.lec-goal-card{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:12px 13px;margin-bottom:8px;transition:all 0.2s}
+.lec-goal-card.upcoming{border-color:rgba(180,140,220,0.4);background:rgba(220,198,244,0.08)}
+.lec-tag{display:inline-block;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;border-radius:5px;padding:2px 7px;margin-bottom:5px}
+.lec-tag.active-t{background:var(--p4);color:#1a3a6a}
+.lec-tag.upcoming-t{background:var(--p5);color:#4a2a7a}
+.lec-goal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.lec-goal-name{font-weight:700;font-size:0.88rem;color:var(--text)}
+.lec-goal-dl{font-size:0.7rem;color:var(--muted);margin-top:1px}
+.lec-goal-dl.urgent{color:#c05030}
+.prog-wrap{background:var(--border);border-radius:20px;height:7px;overflow:hidden;margin-bottom:4px}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p4),#80a8e8);transition:width 0.4s}
+.prog-fill.done{background:linear-gradient(90deg,var(--p3),var(--accent2))}
+.lec-stats{display:flex;justify-content:space-between;font-size:0.71rem;color:var(--muted)}
+.lec-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.lec-inc{padding:3px 7px;font-size:0.71rem;border-radius:6px;border:1px solid var(--border);background:var(--p4);color:#1a3a6a;cursor:pointer}
+.lec-inc:hover{filter:brightness(0.93)}
+.pace-alert{display:flex;align-items:center;gap:5px;background:rgba(240,100,60,0.1);border:1px solid rgba(240,100,60,0.25);border-radius:7px;padding:5px 9px;font-size:0.75rem;color:#c04020;margin-top:6px}
+
+/* Revision goals */
+.rev-card{background:var(--card2);border:1.5px solid rgba(180,150,220,0.25);border-radius:10px;padding:12px 13px;margin-bottom:8px}
+.rev-name{font-weight:700;font-size:0.88rem;color:var(--text)}
+.rev-prog-text{font-size:0.71rem;color:var(--muted);margin-bottom:6px}
+.topic-item{display:flex;align-items:center;gap:7px;font-size:0.82rem;color:var(--text);cursor:pointer;padding:4px 6px;border-radius:6px;transition:background 0.15s}
+.topic-item:hover{background:rgba(220,198,244,0.2)}
+.topic-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--card);font-size:0.67rem}
+.topic-item.done-t .topic-check{background:var(--p3);border-color:var(--accent2)}
+.topic-item.done-t .topic-text{text-decoration:line-through;color:var(--muted)}
+.topic-text{flex:1}
+
+/* Exam countdown */
+.exam-item{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:9px;padding:11px 13px;margin-bottom:7px;border:1px solid var(--border)}
+.exam-name{font-weight:600;font-size:0.87rem;color:var(--text);margin-bottom:2px}
+.exam-date{font-size:0.71rem;color:var(--muted)}
+.exam-days{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:600;line-height:1}
+.exam-days.green{color:var(--accent2)}
+.exam-days.yellow{color:#c89020}
+.exam-days.red{color:#c05030}
+.exam-unit{font-size:0.65rem;color:var(--muted);text-align:center}
+
+/* ═══ PROGRESS TAB ═══ */
+/* XP/Level */
+.xp-bar-wrap{background:var(--border);border-radius:20px;height:10px;overflow:hidden;margin:6px 0}
+.xp-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p4),var(--p5));transition:width 0.6s}
+.level-info{display:flex;justify-content:space-between;font-size:0.73rem;color:var(--muted);margin-top:3px}
+
+/* Badges */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:9px;margin-top:8px}
+.badge-item{background:var(--card2);border:1.5px solid var(--border);border-radius:11px;padding:12px 8px;text-align:center;transition:all 0.2s}
+.badge-item.earned{border-color:var(--accent);background:linear-gradient(135deg,rgba(244,198,198,0.2),rgba(198,220,244,0.2))}
+.badge-item.locked{opacity:0.45;filter:grayscale(0.6)}
+.badge-emoji{font-size:1.6rem;margin-bottom:4px}
+.badge-name{font-size:0.67rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.badge-req{font-size:0.6rem;color:var(--muted);line-height:1.3}
+
+/* Consistency ring */
+.consistency-ring{position:relative;width:110px;height:110px;margin:0 auto 6px}
+.consistency-ring svg{transform:rotate(-90deg)}
+.consistency-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.consistency-num{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);font-weight:600;line-height:1}
+.consistency-label{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em}
+
+/* Weekly summary */
+.week-summary-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.85rem}
+.week-summary-item:last-child{border-bottom:none}
+.week-summary-key{color:var(--muted);font-size:0.82rem}
+.week-summary-val{font-weight:700;color:var(--text)}
+
+/* Mood chart */
+.mood-chart{display:flex;align-items:flex-end;gap:6px;height:60px;margin-top:10px}
+.mood-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mood-bar{width:100%;border-radius:4px 4px 0 0;background:var(--p1);transition:height 0.4s;min-height:4px}
+.mood-day-label{font-size:0.6rem;color:var(--muted)}
+
+/* ═══ MORE TAB ═══ */
+/* Vocab */
+.word-card{background:var(--card2);border:1.5px solid rgba(180,150,220,0.2);border-radius:var(--radius2);padding:14px;margin-bottom:11px;transition:box-shadow 0.2s}
+.word-card:last-child{margin-bottom:0}
+.word-top{display:flex;justify-content:space-between;align-items:flex-start}
+.word-title{font-family:'Playfair Display',serif;font-size:1.18rem;color:#5a3085;margin-bottom:2px}
+.word-pos{font-size:0.69rem;color:#a070c0;font-style:italic;margin-bottom:5px}
+.word-meaning{font-size:0.85rem;color:#4a3555;margin-bottom:9px;line-height:1.6;background:rgba(220,198,244,0.15);border-radius:6px;padding:6px 9px}
+.word-audio-btn{background:rgba(220,198,244,0.3);border:1px solid rgba(180,140,220,0.3);color:#6a40a0;border-radius:7px;padding:3px 9px;font-size:0.74rem;cursor:pointer;transition:all 0.15s;margin-right:6px}
+.word-audio-btn:hover{background:rgba(220,198,244,0.5)}
+.sentences-toggle{display:flex;align-items:center;gap:4px;background:rgba(220,198,244,0.2);border:1px solid rgba(180,140,220,0.2);border-radius:7px;padding:4px 9px;cursor:pointer;font-size:0.74rem;font-weight:500;color:#6a40a0;width:100%;text-align:left;transition:background 0.15s;font-family:'DM Sans',sans-serif;margin-top:5px}
+.sentences-toggle:hover{background:rgba(220,198,244,0.35)}
+.sentences-arrow{transition:transform 0.22s;font-size:0.65rem}
+.sentences-arrow.open{transform:rotate(90deg)}
+.word-sentences{display:none;margin-top:7px}
+.word-sentences.open{display:block}
+.word-sentences ol{padding-left:14px}
+.word-sentences li{font-size:0.82rem;color:#4a3850;margin-bottom:4px;line-height:1.5}
+.save-word-btn{background:var(--p5);border:1px solid rgba(180,140,220,0.3);color:#4a2a7a;border-radius:7px;padding:3px 9px;font-size:0.74rem;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0}
+.save-word-btn.saved{background:var(--p3);border-color:var(--accent2);color:var(--accent2)}
+
+/* Hindi sentences */
+.hindi-card{background:linear-gradient(135deg,rgba(255,220,190,0.2),rgba(255,200,180,0.1));border:1.5px solid rgba(220,160,100,0.25);border-radius:var(--radius2);padding:14px;margin-bottom:11px}
+.hindi-level-tabs{display:flex;gap:5px;margin-bottom:11px;flex-wrap:wrap}
+.hindi-level-tab{padding:4px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--card2);font-size:0.74rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.hindi-level-tab.active{background:var(--p2);border-color:rgba(200,140,80,0.4);color:#7a4a20}
+.hindi-sentence{font-size:0.96rem;color:var(--text);font-weight:500;margin-bottom:8px;line-height:1.6}
+.hindi-reveal-btn{width:100%;padding:8px;background:var(--p2);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;color:#7a4a20;cursor:pointer;transition:all 0.18s;margin-bottom:6px}
+.hindi-reveal-btn:hover{filter:brightness(0.94)}
+.hindi-translation{display:none;background:rgba(255,240,220,0.5);border-radius:7px;padding:8px 11px;font-size:0.88rem;color:var(--sub);line-height:1.5;margin-bottom:8px}
+.hindi-translation.show{display:block}
+.hindi-cat{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px}
+.saved-hindi-item{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:6px}
+.saved-hindi-hindi{font-size:0.86rem;font-weight:500;color:var(--text);margin-bottom:2px}
+.saved-hindi-eng{font-size:0.81rem;color:var(--muted);font-style:italic}
+
+/* Expense tracker */
+.expense-item{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:9px;background:var(--card2);border:1px solid var(--border);margin-bottom:7px}
+.expense-left{display:flex;align-items:center;gap:9px}
+.expense-cat-icon{font-size:1.1rem}
+.expense-desc{font-size:0.85rem;font-weight:500;color:var(--text);margin-bottom:1px}
+.expense-meta{font-size:0.7rem;color:var(--muted)}
+.expense-amt{font-weight:700;font-size:0.9rem;color:var(--accent)}
+.budget-bar{background:var(--border);border-radius:20px;height:8px;overflow:hidden;margin-bottom:3px}
+.budget-fill{height:100%;border-radius:20px;transition:width 0.4s}
+.budget-fill.ok{background:linear-gradient(90deg,var(--p3),var(--accent2))}
+.budget-fill.warn{background:linear-gradient(90deg,var(--p2),#c89020)}
+.budget-fill.over{background:linear-gradient(90deg,var(--p1),#c05030)}
+
+/* Theme picker */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:8px}
+.theme-btn{padding:12px 8px;border-radius:11px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all 0.18s;background:var(--card2)}
+.theme-btn.active{border-color:var(--accent)}
+.theme-preview{width:100%;height:24px;border-radius:6px;margin-bottom:5px}
+.theme-name{font-size:0.71rem;font-weight:600;color:var(--text)}
+
+/* Settings items */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:0.87rem;font-weight:500;color:var(--text)}
+.setting-sub{font-size:0.74rem;color:var(--muted);margin-top:1px}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--border2);position:relative;cursor:pointer;transition:background 0.25s;border:none;flex-shrink:0}
+.toggle.on{background:var(--accent2)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.toggle.on::after{left:23px}
+
+/* Backup section */
+.backup-section{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;margin-bottom:10px}
+.backup-section-title{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.backup-section-sub{font-size:0.78rem;color:var(--muted);margin-bottom:11px;line-height:1.5}
+
+/* User menu */
+.user-menu{position:fixed;top:calc(var(--header-h) + 6px);right:10px;z-index:1100;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;width:200px;box-shadow:0 4px 20px rgba(0,0,0,0.12);display:none}
+.user-menu.open{display:block}
+.user-menu-name{font-weight:600;font-size:0.88rem;color:var(--text);margin-bottom:2px}
+.user-menu-email{font-size:0.74rem;color:var(--muted);margin-bottom:10px;word-break:break-all}
+.user-menu-btn{width:100%;padding:8px 10px;border-radius:8px;border:none;background:var(--card2);font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;color:var(--text);cursor:pointer;text-align:left;margin-bottom:5px;transition:all 0.15s}
+.user-menu-btn:hover{background:var(--p1)}
+.user-menu-btn.danger{color:#b03030}
+.user-menu-btn.danger:hover{background:#fde8e8}
+
+/* Goal form */
+.goal-form{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius2);padding:13px;margin-bottom:12px}
+.goal-empty{text-align:center;color:var(--muted);font-size:0.82rem;padding:18px 0}
+.goal-del-btn{padding:3px 8px;font-size:0.71rem;border-radius:6px;border:1px solid #f0c0c0;background:#fde8e8;color:#b03030;cursor:pointer}
+
+/* Misc */
+.hist-entry{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:7px}
+.hist-entry-date{font-size:0.74rem;font-weight:600;color:var(--sub);margin-bottom:4px}
+.hist-entry-row{font-size:0.81rem;color:var(--text);margin-bottom:3px;line-height:1.4}
+.hist-entry-row span{font-weight:600;color:var(--muted);font-size:0.7rem;text-transform:uppercase;margin-right:4px}
+.hist-empty{text-align:center;color:var(--muted);font-size:0.82rem;padding:20px 0}
+.hist-jump{font-size:0.7rem;background:var(--p3);color:var(--accent2);border:none;border-radius:5px;padding:2px 7px;cursor:pointer;margin-left:4px}
+.skeleton{background:linear-gradient(90deg,rgba(200,180,170,0.12) 25%,rgba(200,180,170,0.24) 50%,rgba(200,180,170,0.12) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:7px;height:13px;margin-bottom:5px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 10px;font-size:0.74rem;font-weight:500}
+
+/* ── PROFILE PANEL ── */
+#profileOverlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(30,20,15,0.35);backdrop-filter:blur(4px)}
+#profileOverlay.open{display:block}
+#profilePanel{position:fixed;top:0;right:0;bottom:0;z-index:801;width:min(340px,92vw);background:var(--card);box-shadow:-4px 0 32px rgba(0,0,0,0.15);overflow-y:auto;padding:52px 18px 80px;transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1)}
+#profilePanel.open{transform:translateX(0)}
+.profile-tab{flex:1;padding:7px 4px;border-radius:9px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.15s;color:var(--muted);text-align:center;font-weight:500}
+.profile-tab.active{background:var(--p1);border-color:transparent;color:var(--accent);font-weight:700}
+
+.install-bar{display:none;position:fixed;bottom:var(--nav-h);left:0;right:0;z-index:800;background:rgba(255,248,244,0.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);padding:10px 14px}
+.install-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;gap:9px}
+.install-icon{font-size:1.5rem;flex-shrink:0}
+.install-text{flex:1}
+.install-text strong{display:block;font-size:0.86rem;color:var(--text);margin-bottom:1px}
+.install-text span{font-size:0.72rem;color:var(--muted)}
+.ios-tip{display:none;position:fixed;bottom:var(--nav-h);left:0;right:0;z-index:800;background:rgba(255,248,244,0.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);padding:13px 14px}
+.ios-tip-inner{max-width:820px;margin:0 auto}
+.ios-close{float:right;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+
+
+<!-- LOGIN -->
+<div id="loginScreen" class="hidden">
+  <div class="login-box" style="max-width:380px">
+    <div class="login-logo">✅</div>
+    <div class="login-title">My Daily Tracker</div>
+    <div class="login-sub">Sign in with your Google account. Your data is private and syncs automatically across all your devices.</div>
+    <div class="login-error" id="loginError"></div>
+    <button class="google-btn" onclick="signInWithGoogle()" style="margin-bottom:14px">
+      <svg class="google-icon" viewBox="0 0 48 48" width="20" height="20"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.5 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 40.5 16.2 44 24 44z"/><path fill="#1565C0" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.1-2.2 4-3.9 5.4l6.2 5.2C37.3 38.1 44 33 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-note">🔒 Your data is private and separate from all other users.<br>☁️ Saves to your Google Drive automatically.</div>
+  </div>
+</div>
+
+<!-- SETUP (JSONBin) -->
+<div id="setupScreen" class="hidden">
+  <div class="setup-box">
+    <div class="setup-logo">☁️</div>
+    <div class="setup-title">Connect Cloud Sync</div>
+    <div class="setup-sub">Connect JSONBin for free cross-device sync — no credit card.</div>
+    <div class="setup-note">🎉 Completely free — just sign up with email at jsonbin.io</div>
+    <div class="setup-error" id="setupError"></div>
+    <ol class="setup-steps">
+      <li>Go to <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → Sign Up Free</li>
+      <li>Profile icon → API Keys → + CREATE ACCESS KEY</li>
+      <li>Copy the key and paste it below</li>
+    </ol>
+    <div class="setup-field"><label>JSONBin API Key</label><input type="text" id="setupApiKey" placeholder="$2a$10$… paste your key here" autocomplete="off" spellcheck="false"/></div>
+    <button class="setup-btn" id="connectBtn" onclick="connectJSONBin()">☁️ Connect & Start</button>
+    <span class="setup-skip" onclick="skipToLocal()">Skip — use this device only</span>
+  </div>
+</div>
+
+<!-- PROFILE OVERLAY + PANEL -->
+<div id="profileOverlay" onclick="closeProfilePanel()"></div>
+<div id="profilePanel">
+  <button onclick="closeProfilePanel()" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted)">×</button>
+
+  <!-- Profile info -->
+  <div style="display:flex;align-items:center;gap:13px;margin-bottom:18px;padding-bottom:15px;border-bottom:1px solid var(--border)">
+    <div style="width:50px;height:50px;border-radius:50%;background:var(--p1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:var(--accent);flex-shrink:0;overflow:hidden;border:2px solid var(--border)">
+      <img id="profileAvatarImg" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+      <span id="profileAvatarInitial">👤</span>
+    </div>
+    <div style="min-width:0">
+      <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="profileName">My Account</div>
+      <div style="font-size:0.73rem;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="profileEmail"></div>
+      <div style="font-size:0.7rem;margin-top:3px" id="profileDriveStatus">☁️ Checking Drive…</div>
+    </div>
+  </div>
+
+  <!-- Section tabs -->
+  <div style="display:flex;gap:5px;margin-bottom:14px">
+    <button class="profile-tab active" id="ptab-theme" onclick="switchProfileTab('theme')">🎨 Theme</button>
+    <button class="profile-tab" id="ptab-settings" onclick="switchProfileTab('settings')">⚙️ Settings</button>
+    <button class="profile-tab" id="ptab-backup" onclick="switchProfileTab('backup')">🗂 Backup</button>
+  </div>
+
+  <!-- Theme Panel -->
+  <div id="profilePanel-theme">
+  <!-- Themes -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:linear-gradient(135deg,#f4c6c6,#c6dcf4)">🎨</div>
+      <div class="card-title">App Theme</div>
+    </div>
+    <div class="theme-grid">
+      <button class="theme-btn active" id="themeBtn-rose" onclick="setTheme('rose')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#fce8e8,#fdf0e0,#e8f6ee)"></div>
+        <div class="theme-name">🌸 Rose</div>
+      </button>
+      <button class="theme-btn" id="themeBtn-ocean" onclick="setTheme('ocean')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#e0f0ff,#e0f8ff,#e0fff4)"></div>
+        <div class="theme-name">🌊 Ocean</div>
+      </button>
+      <button class="theme-btn" id="themeBtn-forest" onclick="setTheme('forest')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#e0f8ec,#f0f8e0,#e0f8f4)"></div>
+        <div class="theme-name">🌲 Forest</div>
+      </button>
+      <button class="theme-btn" id="themeBtn-sunset" onclick="setTheme('sunset')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#fff0e0,#fff8e0,#ffe8e0)"></div>
+        <div class="theme-name">🌅 Sunset</div>
+      </button>
+      <button class="theme-btn" id="themeBtn-purple" onclick="setTheme('purple')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#f0e8ff,#f8e8ff,#e8e8ff)"></div>
+        <div class="theme-name">💜 Purple</div>
+      </button>
+      <button class="theme-btn" id="themeBtn-dark" onclick="setTheme('dark')">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#1a1212,#1a1810,#101a14)"></div>
+        <div class="theme-name">🌙 Dark</div>
+      </button>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="profilePanel-settings" style="display:none">
+  <!-- Settings -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p4)">⚙️</div>
+      <div class="card-title">Settings</div>
+    </div>
+    
+    <div class="setting-row">
+      <div><div class="setting-label">☁️ Google Drive</div><div class="setting-sub" id="syncStatusLabel">Not connected</div></div>
+      <button class="btn btn-ghost btn-sm" id="syncManageBtn" onclick="showSyncInfo()">Reconnect</button>
+    </div>
+
+    <div class="setting-row">
+      <div><div class="setting-label">👤 Account</div><div class="setting-sub" id="settingAccountEmail">Not signed in</div></div>
+      <button class="btn btn-danger btn-sm" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Backup Panel -->
+  <div id="profilePanel-backup" style="display:none">
+  <!-- Backup & Restore -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p3)">🗂</div>
+      <div class="card-title">Backup & Restore</div>
+    </div>
+    <div class="backup-section">
+      <div class="backup-section-title">📥 Download Backup</div>
+      <div class="backup-section-sub">Downloads all your data as a .json file. Save it anywhere safe.</div>
+      <button class="btn btn-p3 btn-full" onclick="downloadBackup()">⬇️ Download My Data (.json)</button>
+    </div>
+    <div class="backup-section" style="background:rgba(198,220,244,0.15);border-color:rgba(100,140,220,0.2)">
+      <div class="backup-section-title">📤 Restore from Backup</div>
+      <div class="backup-section-sub">Pick a .json backup file. Your current data will be replaced.</div>
+      <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="handleRestoreFile(event)"/>
+      <button class="btn btn-p4 btn-full" onclick="document.getElementById('restoreFileInput').click()">📂 Choose Backup File</button>
+      <div id="restoreStatus" style="margin-top:8px;font-size:0.79rem;text-align:center;min-height:16px"></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Sign out -->
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+    <button class="btn btn-danger btn-full" onclick="signOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topBar" style="display:none">
+  <div class="topbar-left">
+    <div class="topbar-title" style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--text)">✦ My Daily Tracker</div>
+  </div>
+  <div class="topbar-right">
+    <div id="userAvatarWrap" onclick="toggleProfilePanel()" style="cursor:pointer">
+      <img class="user-av" id="userAv" src="" alt="" style="display:none"/>
+      <div class="user-av-placeholder" id="userAvPlaceholder">👤</div>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC BAR -->
+<div id="syncBar"><span class="sync-dot" id="syncDot"></span><span id="syncMsg"></span></div>
+
+<!-- UNDO TOAST -->
+<div id="undoToast"><span id="undoMsg">Item deleted</span><button onclick="doUndo()">Undo</button></div>
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+
+<!-- ══ HOME TAB ══ -->
+<div class="tab-page active" id="tab-home">
+
+  <!-- Daily Quote -->
+  <div class="quote-card">
+    <div class="quote-text" id="quoteText">The secret of getting ahead is getting started.</div>
+    <div class="quote-author" id="quoteAuthor">— Mark Twain</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num" id="statStreak">0</div>
+      <div class="stat-label">🔥 Day Streak</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statConsistency">0%</div>
+      <div class="stat-label">📊 Consistency</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statLevel">1</div>
+      <div class="stat-label">⭐ Level</div>
+    </div>
+  </div>
+
+  <!-- Mood Tracker -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p2)">😊</div>
+      <div><div class="card-title">Mood Today</div><div class="card-sub" id="moodSaved"></div></div>
+    </div>
+    <div class="mood-row">
+      <button class="mood-btn" data-mood="5" data-label="Great" onclick="setMood(5)">😄</button>
+      <button class="mood-btn" data-mood="4" data-label="Good" onclick="setMood(4)">😊</button>
+      <button class="mood-btn" data-mood="3" data-label="Okay" onclick="setMood(3)">😐</button>
+      <button class="mood-btn" data-mood="2" data-label="Low" onclick="setMood(2)">😟</button>
+      <button class="mood-btn" data-mood="1" data-label="Bad" onclick="setMood(1)">😢</button>
+    </div>
+    <div style="height:18px"></div>
+  </div>
+
+  <!-- Streak & Freeze — compact -->
+  <div class="card" style="padding:16px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:2rem">🔥</div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--accent);font-weight:600;line-height:1" id="streakNum">0</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:2px">Day Streak</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="freeze-chip" style="margin-bottom:6px">🧊 <span id="freezeCount">0</span> freeze(s)</div>
+        <button class="use-freeze-btn" onclick="useFreeze()">Use Freeze</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily To-Do -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p3)">✅</div>
+      <div class="card-title">Today's To-Do</div>
+      <button class="btn btn-p3 btn-sm" style="margin-left:auto" onclick="openAddTodoModal()">+ Add</button>
+    </div>
+    <div id="todoList"><div class="skeleton"></div><div class="skeleton" style="width:70%"></div></div>
+    <div style="font-size:0.74rem;color:var(--muted);text-align:center;margin-top:8px" id="todoProgress"></div>
+  </div>
+
+  <!-- Quick Notes -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p5)">📌</div>
+      <div class="card-title">Quick Notes</div>
+    </div>
+    <textarea class="notes-area" id="quickNotes" placeholder="Jot anything down… auto-saves as you type." oninput="saveNotes()"></textarea>
+  </div>
+</div>
+
+<!-- ══ STUDY TAB ══ -->
+<div class="tab-page" id="tab-study">
+
+  <!-- Pomodoro Timer -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(255,100,80,0.15)">⏱</div>
+      <div><div class="card-title">Study Timer</div><div class="card-sub" id="timerSessionsLabel">Sessions: 0 today</div></div>
+    </div>
+    <div class="preset-tabs">
+      <div class="preset-tab active" onclick="setPreset('classic',this)">🍅 Classic 25/5</div>
+      <div class="preset-tab" onclick="setPreset('deep',this)">📖 Deep 50/10</div>
+      <div class="preset-tab" onclick="setPreset('quick',this)">⚡ Quick 15/3</div>
+      <div class="preset-tab" onclick="setPreset('custom',this)">🎛 Custom</div>
+    </div>
+    <div class="custom-timer-fields" id="customFields">
+      <div class="custom-field"><label>Study (min)</label><input type="number" id="customStudy" value="25" min="1" max="120"/></div>
+      <div class="custom-field"><label>Break (min)</label><input type="number" id="customBreak" value="5" min="1" max="60"/></div>
+      <div class="custom-field"><label>Sessions</label><input type="number" id="customSessions" value="4" min="1" max="10"/></div>
+    </div>
+    <div class="timer-display">
+      <div class="timer-ring">
+        <svg width="140" height="140" viewBox="0 0 160 160">
+          <circle class="bg" cx="80" cy="80" r="68" stroke-dasharray="427" stroke-dashoffset="0"/>
+          <circle class="prog" id="timerRingCircle" cx="80" cy="80" r="68" stroke-dasharray="427" stroke-dashoffset="0"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px">
+          <div class="timer-time" id="timerDisplay">25:00</div>
+          <div class="timer-label" id="timerPhase">Study</div>
+          <div class="timer-session" id="timerSessionCount">Session 1 of 4</div>
+        </div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <button class="btn btn-p3" onclick="timerStart()" id="timerStartBtn">▶ Start</button>
+      <button class="btn btn-ghost" onclick="timerPause()" id="timerPauseBtn" style="display:none">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="timerReset()">↺ Reset</button>
+      <button class="btn btn-p4" onclick="timerSkip()">⏭ Skip</button>
+    </div>
+  </div>
+
+  <!-- Recurring Tasks -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p1)">🗓</div>
+      <div class="card-title">Recurring Tasks</div>
+      <button class="btn btn-p1 btn-sm" style="margin-left:auto" onclick="openAddTaskModal()">+ Add</button>
+    </div>
+    <div class="task-tabs" id="taskTabs"></div>
+    <div class="cycle-grid" id="mainCycles"><div class="skeleton" style="height:68px"></div><div class="skeleton" style="height:68px"></div></div>
+    <div class="cycle-note" id="cycleNote"></div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="togglePanel('histPanel')">📜 Past</button>
+      <button class="btn btn-ghost btn-sm" onclick="togglePanel('futPanel')">🔮 Upcoming</button>
+    </div>
+    <div class="exp-panel" id="histPanel"><div class="exp-title">Past Occurrences</div><div class="exp-grid" id="histGrid"></div></div>
+    <div class="exp-panel" id="futPanel"><div class="exp-title">Future Occurrences</div><div class="exp-grid" id="futGrid"></div></div>
+  </div>
+
+  <!-- Daily Journal -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p3)">📝</div>
+      <div class="card-title">Daily Journal</div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openJournalHistory()">📋 History</button>
+    </div>
+    <div class="log-nav">
+      <button class="log-nav-btn" onclick="shiftLogDay(-1)">‹ Prev</button>
+      <div class="log-date-label" id="logDateLabel"></div>
+      <button class="log-nav-btn" onclick="shiftLogDay(1)">Next ›</button>
+    </div>
+    <span class="log-field-label">What did I do today?</span>
+    <textarea class="log-area" id="logDid" rows="3" placeholder="Describe your activities…"></textarea>
+    <span class="log-field-label">What did I learn?</span>
+    <textarea class="log-area" id="logLearned" rows="3" placeholder="Key lessons, insights…"></textarea>
+    <span class="log-field-label">Lectures watched</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <input type="number" id="logLectures" min="0" value="0" style="width:64px;padding:8px 9px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);font-size:0.9rem;color:var(--text);text-align:center;outline:none"/>
+      <span style="font-size:0.83rem;color:var(--muted)">lecture(s)</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-p3" onclick="saveLog()">💾 Save Entry</button>
+      <button class="btn btn-ghost" onclick="clearLogFields()">Clear</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+  </div>
+
+  <!-- Flashcards -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p4)">🃏</div>
+      <div class="card-title">Flashcards</div>
+      <button class="btn btn-p4 btn-sm" style="margin-left:auto" onclick="openAddFlashcardModal()">+ Add</button>
+    </div>
+    <div id="flashcardArea"></div>
+  </div>
+
+  <!-- Formula Sheet -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p5)">📐</div>
+      <div class="card-title">Formula Sheet</div>
+      <button class="btn btn-p5 btn-sm" style="margin-left:auto" onclick="openAddFormulaModal()">+ Add</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <input type="text" class="inp" id="formulaSearch" placeholder="Search formulas…" oninput="renderFormulas()"/>
+    </div>
+    <div id="formulaList"></div>
+  </div>
+
+  <!-- Mistake Diary -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(255,100,100,0.15)">❌</div>
+      <div class="card-title">Mistake Diary</div>
+      <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="openAddMistakeModal()">+ Log</button>
+    </div>
+    <div id="mistakeList"></div>
+  </div>
+
+  <!-- Reading Tracker -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p2)">📖</div>
+      <div class="card-title">Reading Tracker</div>
+      <button class="btn btn-p2 btn-sm" style="margin-left:auto" onclick="openAddBookModal()">+ Add Book</button>
+    </div>
+    <div id="bookList"></div>
+  </div>
+</div>
+
+<!-- ══ GOALS TAB ══ -->
+<div class="tab-page" id="tab-goals">
+
+  <!-- Exam Countdown -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(255,150,80,0.2)">📅</div>
+      <div class="card-title">Exam Countdown</div>
+      <button class="btn btn-p2 btn-sm" style="margin-left:auto" onclick="openAddExamModal()">+ Add Exam</button>
+    </div>
+    <div id="examList"></div>
+  </div>
+
+  <!-- Lecture Goals -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p4)">📘</div>
+      <div class="card-title">Lecture Goals</div>
+    </div>
+    <div class="goal-tabs">
+      <button class="gtab active" id="gtab-lec" onclick="switchGoalTab('lec')">📘 Lecture</button>
+      <button class="gtab" id="gtab-rev" onclick="switchGoalTab('rev')">🔁 Revision</button>
+    </div>
+    <div id="goalPanel-lec">
+      <div class="goal-form">
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          <button class="btn btn-p4 btn-sm" id="lecTabActive" onclick="switchLecTab('active')" style="flex:1">📘 Active</button>
+          <button class="btn btn-ghost btn-sm" id="lecTabUpcoming" onclick="switchLecTab('upcoming')" style="flex:1">🔜 Upcoming</button>
+        </div>
+        <div class="inp-row">
+          <div class="inp-group" style="flex:2"><label class="inp-label">Subject</label><input class="inp" id="lgSubject" placeholder="e.g. Physics…"/></div>
+          <div class="inp-group"><label class="inp-label">Total Lec.</label><input class="inp" id="lgTotal" type="number" min="1" placeholder="60"/></div>
+        </div>
+        <div class="inp-row">
+          <div class="inp-group"><label class="inp-label">Deadline</label><input class="inp" id="lgDeadline" type="date"/></div>
+          <div class="inp-group"><label class="inp-label">Start Date</label><input class="inp" id="lgStartDate" type="date"/></div>
+        </div>
+        <button class="btn btn-full btn-p4" id="addLecBtn" onclick="addLectureGoal()">+ Add Goal</button>
+      </div>
+      <div id="lectureGoalsList"></div>
+    </div>
+    <div id="goalPanel-rev" style="display:none">
+      <div class="goal-form">
+        <div class="inp-row">
+          <div class="inp-group"><label class="inp-label">Subject Name</label><input class="inp" id="rgSubject" placeholder="e.g. Chemistry…"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-p5" onclick="addRevisionGoal()">+ Add</button></div>
+        </div>
+      </div>
+      <div id="revisionGoalsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROGRESS TAB ══ -->
+<div class="tab-page" id="tab-progress">
+
+  <!-- XP & Level -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:linear-gradient(135deg,var(--p4),var(--p5))">⭐</div>
+      <div><div class="card-title">Level & XP</div><div class="card-sub" id="levelSubtitle">Keep going!</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--accent);font-weight:600" id="levelDisplay">1</div>
+      <div style="text-align:right">
+        <div style="font-size:0.82rem;color:var(--muted)" id="xpDisplay">0 / 100 XP</div>
+        <div style="font-size:0.71rem;color:var(--muted)" id="xpToNext">100 XP to next level</div>
+      </div>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+    <div style="margin-top:10px;font-size:0.78rem;color:var(--muted);line-height:1.7">
+      ✍️ Journal entry +5 XP · 📚 Lecture done +3 XP · ✅ To-do done +2 XP<br>
+      🎯 Goal completed +10 XP · 🏅 Badge earned +15 XP · ⏱ Study session +8 XP
+    </div>
+  </div>
+
+  <!-- Consistency Score -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p3)">📊</div>
+      <div><div class="card-title">Consistency Score</div><div class="card-sub">This week</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="consistency-ring">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle fill="none" stroke="var(--border)" stroke-width="10" cx="55" cy="55" r="45" transform="rotate(-90 55 55)"/>
+          <circle fill="none" stroke="var(--accent2)" stroke-width="10" cx="55" cy="55" r="45" stroke-dasharray="283" id="consistencyCircle" stroke-dashoffset="283" transform="rotate(-90 55 55)" style="transition:stroke-dashoffset 0.8s"/>
+        </svg>
+        <div class="consistency-pct">
+          <div class="consistency-num" id="consistencyNum">0%</div>
+          <div class="consistency-label">Score</div>
+        </div>
+      </div>
+      <div style="flex:1;font-size:0.79rem;color:var(--muted);line-height:2" id="consistencyBreakdown">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Weekly Summary -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p2)">📋</div>
+      <div class="card-title">Weekly Summary</div>
+    </div>
+    <div id="weeklySummary"><div class="skeleton"></div><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:60%"></div></div>
+    <!-- Mood chart -->
+    <div style="margin-top:12px">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;font-weight:500">Mood This Week</div>
+      <div class="mood-chart" id="moodChart"></div>
+    </div>
+  </div>
+
+  <!-- Achievement Badges -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(255,200,50,0.2)">🏅</div>
+      <div><div class="card-title">Achievement Badges</div><div class="card-sub" id="badgeProgress">0 / 20 earned</div></div>
+    </div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </div>
+</div>
+
+<!-- ══ MORE TAB ══ -->
+<div class="tab-page" id="tab-more">
+
+  <!-- Word of the Day -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p5)">📚</div>
+      <div class="card-title">Word of the Day</div>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-p5" onclick="showNextWords()">🔀 New Words</button>
+      <button class="btn btn-p4" onclick="openSavedWordsModal()">📌 Saved Words</button>
+    </div>
+    <div id="vocabArea"></div>
+  </div>
+
+  <!-- Hindi Sentences -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--p2)">🇮🇳</div>
+      <div><div class="card-title">Hindi → English</div><div class="card-sub">Daily Practice</div></div>
+    </div>
+    <div class="hindi-level-tabs">
+      <div class="hindi-level-tab active" onclick="setHindiLevel('daily',this)">🗣 Daily</div>
+      <div class="hindi-level-tab" onclick="setHindiLevel('professional',this)">💼 Professional</div>
+      <div class="hindi-level-tab" onclick="setHindiLevel('advanced',this)">🎓 Advanced</div>
+    </div>
+    <div id="hindiArea"></div>
+    <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-p2 btn-sm" onclick="hindiNext()">🔀 Next Sentence</button>
+      <button class="btn btn-p3 btn-sm" onclick="openSavedHindiModal()">📌 Saved Sentences</button>
+    </div>
+  </div>
+
+  <!-- Expense Tracker -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(100,200,100,0.2)">💰</div>
+      <div><div class="card-title">Expense Tracker</div><div class="card-sub" id="expenseMonthLabel"></div></div>
+    </div>
+    <div class="goal-form">
+      <div class="inp-row">
+        <div class="inp-group" style="flex:2"><label class="inp-label">Description</label><input class="inp" id="expDesc" placeholder="e.g. Lunch, Books…"/></div>
+        <div class="inp-group"><label class="inp-label">Amount</label><input class="inp" id="expAmt" type="number" min="0" placeholder="0"/></div>
+      </div>
+      <div class="inp-row">
+        <div class="inp-group">
+          <label class="inp-label">Category</label>
+          <select class="inp" id="expCat">
+            <option value="food">🍔 Food</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="study">📚 Study</option>
+            <option value="health">💊 Health</option>
+            <option value="shopping">🛍 Shopping</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+        <div class="inp-group" style="display:flex;align-items:flex-end">
+          <button class="btn btn-p3 btn-full" onclick="addExpense()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:0.82rem;color:var(--muted)">Month total:</div>
+      <div style="font-weight:700;font-size:1rem;color:var(--accent)" id="expMonthTotal">₹0</div>
+    </div>
+    <div id="expenseList" style="max-height:240px;overflow-y:auto"></div>
+  </div>
+
+  <!-- Monthly Budget -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(100,200,150,0.2)">📊</div>
+      <div class="card-title">Monthly Budget</div>
+    </div>
+    <div class="goal-form">
+      <div class="inp-row">
+        <div class="inp-group"><label class="inp-label">Monthly Income</label><input class="inp" id="budgetIncome" type="number" placeholder="e.g. 20000" oninput="saveBudget()"/></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em">Category Budgets</div>
+      <div class="grid2">
+        <div><label class="inp-label" style="font-size:0.69rem">🍔 Food</label><input class="inp" id="budCat-food" type="number" placeholder="5000" oninput="saveBudget()"/></div>
+        <div><label class="inp-label" style="font-size:0.69rem">🚗 Transport</label><input class="inp" id="budCat-transport" type="number" placeholder="2000" oninput="saveBudget()"/></div>
+        <div><label class="inp-label" style="font-size:0.69rem">📚 Study</label><input class="inp" id="budCat-study" type="number" placeholder="3000" oninput="saveBudget()"/></div>
+        <div><label class="inp-label" style="font-size:0.69rem">💊 Health</label><input class="inp" id="budCat-health" type="number" placeholder="1000" oninput="saveBudget()"/></div>
+        <div><label class="inp-label" style="font-size:0.69rem">🛍 Shopping</label><input class="inp" id="budCat-shopping" type="number" placeholder="2000" oninput="saveBudget()"/></div>
+        <div><label class="inp-label" style="font-size:0.69rem">📦 Other</label><input class="inp" id="budCat-other" type="number" placeholder="1000" oninput="saveBudget()"/></div>
+      </div>
+    </div>
+    <div id="budgetBars"></div>
+  </div>
+
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<div id="bottomNav" style="display:none">
+  <button class="nav-btn active" onclick="openTab('home')" id="navBtn-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+  <button class="nav-btn" onclick="openTab('study')" id="navBtn-study"><span class="nav-icon">📚</span><span class="nav-label">Study</span></button>
+  <button class="nav-btn" onclick="openTab('goals')" id="navBtn-goals"><span class="nav-icon">🎯</span><span class="nav-label">Goals</span></button>
+  <button class="nav-btn" onclick="openTab('progress')" id="navBtn-progress"><span class="nav-icon">📊</span><span class="nav-label">Progress</span></button>
+  <button class="nav-btn" onclick="openTab('more')" id="navBtn-more"><span class="nav-icon">🌐</span><span class="nav-label">Words</span></button>
+</div>
+
+<!-- PWA -->
+<div class="install-bar" id="installBanner">
+  <div class="install-inner">
+    <div class="install-icon">📲</div>
+    <div class="install-text"><strong>Add to Home Screen</strong><span>Works like a real app!</span></div>
+    <button class="btn btn-p1 btn-sm" onclick="doInstall()">Install</button>
+    <button style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:3px" onclick="dismissInstall()">×</button>
+  </div>
+</div>
+<div class="ios-tip" id="iosTip">
+  <div class="ios-tip-inner">
+    <button class="ios-close" onclick="document.getElementById('iosTip').style.display='none'">×</button>
+    <strong>📲 Add to Home Screen</strong>
+    <ol style="font-size:0.8rem;color:var(--text);line-height:2;list-style:none;padding:0;margin-top:5px">
+      <li>→ Tap <strong>Share ⎙</strong> at the bottom of Safari</li>
+      <li>→ Tap <strong>"Add to Home Screen"</strong></li>
+      <li>→ Tap <strong>Add</strong> ✅</li>
+    </ol>
+    <p style="font-size:0.7rem;color:var(--muted);margin-top:4px">⚠ Must use Safari (not Chrome) on iPhone</p>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add Task -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-title" id="taskModalTitle">➕ Add New Task</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Task Name</label><input class="inp" id="tmName" placeholder="e.g. Revision, Exercise…"/></div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Repeat Every (days)</label><input class="inp" type="number" id="tmInterval" value="5" min="1" max="365"/></div>
+      <div class="inp-group"><label class="inp-label">Start Date</label><input class="inp" type="date" id="tmStartDate"/></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-p1 btn-full" onclick="saveTaskModal()">Save Task</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('taskModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add To-Do -->
+<div class="modal-overlay" id="todoModal">
+  <div class="modal">
+    <div class="modal-title">✅ Add To-Do Item</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Task</label><input class="inp" id="todoInput" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter')saveTodo()"/></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p3 btn-full" onclick="saveTodo()">Add Task</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('todoModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Flashcard -->
+<div class="modal-overlay" id="flashcardModal">
+  <div class="modal">
+    <div class="modal-title">🃏 Add Flashcard</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Subject</label><input class="inp" id="fcSubject" placeholder="e.g. Chemistry, History…"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Question (Front)</label><textarea class="inp" id="fcQuestion" rows="2" placeholder="Enter the question…"></textarea></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Answer (Back)</label><textarea class="inp" id="fcAnswer" rows="2" placeholder="Enter the answer…"></textarea></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p4 btn-full" onclick="saveFlashcard()">Save Card</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('flashcardModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Formula -->
+<div class="modal-overlay" id="formulaModal">
+  <div class="modal">
+    <div class="modal-title">📐 Add Formula</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Subject</label><input class="inp" id="fmSubject" placeholder="e.g. Physics, Math…"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Formula Name</label><input class="inp" id="fmName" placeholder="e.g. Newton's Second Law…"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Formula / Expression</label><input class="inp" id="fmExpr" placeholder="e.g. F = ma"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Description (optional)</label><textarea class="inp" id="fmDesc" rows="2" placeholder="Explain variables, units…"></textarea></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p5 btn-full" onclick="saveFormula()">Save Formula</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('formulaModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Mistake -->
+<div class="modal-overlay" id="mistakeModal">
+  <div class="modal">
+    <div class="modal-title">❌ Log Mistake</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Subject</label><input class="inp" id="mkSubject" placeholder="e.g. Chemistry…"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">What went wrong?</label><textarea class="inp" id="mkWrong" rows="2" placeholder="Describe the mistake…"></textarea></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Correct answer / How to fix</label><textarea class="inp" id="mkCorrect" rows="2" placeholder="The correct approach…"></textarea></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-danger btn-full" onclick="saveMistake()">Log Mistake</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('mistakeModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Book -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal">
+    <div class="modal-title">📖 Add Book</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Book Title</label><input class="inp" id="bkTitle" placeholder="e.g. Atomic Habits…"/></div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Total Pages</label><input class="inp" type="number" id="bkTotal" min="1" placeholder="300"/></div>
+      <div class="inp-group"><label class="inp-label">Pages Read So Far</label><input class="inp" type="number" id="bkRead" min="0" value="0" placeholder="0"/></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p2 btn-full" onclick="saveBook()">Add Book</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('bookModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Book Pages -->
+<div class="modal-overlay" id="bookUpdateModal">
+  <div class="modal">
+    <div class="modal-title" id="bookUpdateTitle">📖 Update Progress</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Pages Read Today</label><input class="inp" type="number" id="bkPagesInput" min="0" placeholder="e.g. 20"/></div></div>
+    <input type="hidden" id="bkUpdateId"/>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p2 btn-full" onclick="updateBookPages()">Update</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('bookUpdateModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exam -->
+<div class="modal-overlay" id="examModal">
+  <div class="modal">
+    <div class="modal-title">📅 Add Exam</div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Exam Name</label><input class="inp" id="exName" placeholder="e.g. Physics Final…"/></div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Exam Date</label><input class="inp" type="date" id="exDate"/></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p2 btn-full" onclick="saveExam()">Add Exam</button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('examModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Journal History -->
+<div class="modal-overlay" id="journalHistoryModal">
+  <div class="modal">
+    <div class="modal-title">📋 Journal History</div>
+    <div id="journalHistoryBody"></div>
+  </div>
+</div>
+
+<!-- Saved Words -->
+<div class="modal-overlay" id="savedWordsModal">
+  <div class="modal">
+    <div class="modal-title">📌 Saved Words</div>
+    <div id="savedWordsBody"></div>
+  </div>
+</div>
+
+<!-- Saved Hindi Sentences -->
+<div class="modal-overlay" id="savedHindiModal">
+  <div class="modal">
+    <div class="modal-title">📌 Saved Hindi Sentences</div>
+    <div id="savedHindiBody"></div>
+  </div>
+</div>
+
+<!-- Badge detail -->
+<div class="modal-overlay" id="badgeModal">
+  <div class="modal" style="text-align:center">
+    <div class="modal-pill"></div>
+    <div style="font-size:3rem;margin-bottom:8px" id="badgeDetailEmoji">🏅</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:6px" id="badgeDetailName"></div>
+    <div style="font-size:0.84rem;color:var(--muted);line-height:1.6;margin-bottom:16px" id="badgeDetailDesc"></div>
+    <div style="font-size:0.78rem;font-weight:600" id="badgeDetailStatus"></div>
+  </div>
+</div>
+
+<!-- Backup Modal (from user menu) -->
+<div class="modal-overlay" id="backupModal">
+  <div class="modal">
+    <div class="modal-title">🗂 Backup & Restore</div>
+    <div class="backup-section">
+      <div class="backup-section-title">📥 Download Backup</div>
+      <div class="backup-section-sub">Download all your data as a .json file.</div>
+      <button class="btn btn-p3 btn-full" onclick="downloadBackup()">⬇️ Download My Data</button>
+    </div>
+    <div class="backup-section" style="background:rgba(198,220,244,0.15)">
+      <div class="backup-section-title">📤 Restore from Backup</div>
+      <div class="backup-section-sub">Your current data will be replaced with the backup.</div>
+      <input type="file" id="restoreFileInput2" accept=".json" style="display:none" onchange="handleRestoreFile(event)"/>
+      <button class="btn btn-p4 btn-full" onclick="document.getElementById('restoreFileInput2').click()">📂 Choose Backup File</button>
+      <div id="restoreStatus2" style="margin-top:8px;font-size:0.79rem;text-align:center;min-height:16px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   GOOGLE SIGN IN + GOOGLE DRIVE STORAGE
+   ─────────────────────────────────────────────────────
+   Strategy:
+   • Use Google Identity Services (GIS) token client
+   • requestAccessToken with prompt:'select_account' opens
+     the account-picker overlay (works on Android Chrome)
+   • Access token used to call Drive REST API directly
+   • Data stored in one file "daily-tracker-data.json"
+     in the user's Drive (appDataFolder scope)
+   • Boot with localStorage immediately → sync Drive BG
+═══════════════════════════════════════════════════════ */
+const GOOGLE_CLIENT_ID = '617902117510-458kvpu21d3c5dactdlmhg9rcau4o0f0.apps.googleusercontent.com';
+const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file openid email profile';
+const DRIVE_FILE_NAME = 'daily-tracker-data.json';
+
+let currentUser  = null;
+let _accessToken = null;
+let _driveFileId = null;
+let _tokenClient = null;
+let _driveReady  = false;
+
+/* ── Invite code ── */
+const INVITE_CODE = '47392815';
+
+/* ── Sign in button click ── */
+function signInWithGoogle() {
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!window.google || !window.google.accounts) {
+    errEl.textContent = 'Google is loading… please wait 2 seconds and try again.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!_tokenClient) {
+    _tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPES,
+      callback: handleGoogleToken,
+      error_callback: (err) => {
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = 'Sign in failed: ' + (err.message || err.type || 'unknown error');
+        errEl.style.display = 'block';
+      }
+    });
+  }
+  _tokenClient.requestAccessToken({ prompt: 'select_account' });
+}
+
+/* ── Called after user picks Google account ── */
+async function handleGoogleToken(resp) {
+  if (resp.error) {
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = 'Sign in failed: ' + resp.error;
+    errEl.style.display = 'block'; return;
+  }
+  _accessToken = resp.access_token;
+  try {
+    // Get user profile
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + _accessToken }
+    });
+    if (!res.ok) throw new Error('Could not get user info');
+    const info = await res.json();
+    currentUser = { id: info.sub, name: info.name || info.email, email: info.email, avatar: info.picture };
+    localStorage.setItem('guser_session', JSON.stringify({ id: info.sub, name: info.name || info.email, email: info.email, avatar: info.picture }));
+    // Token expires in ~1hr — store expiry
+    localStorage.setItem('gtoken_expiry', Date.now() + 3500 * 1000);
+    afterSignIn();
+  } catch(e) {
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = 'Could not get your profile. Please try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+/* ── Refresh token silently (no popup) ── */
+function refreshTokenSilently() {
+  if (!_tokenClient) return;
+  _tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: DRIVE_SCOPES,
+    prompt: '',
+    callback: (resp) => {
+      if (!resp.error) {
+        _accessToken = resp.access_token;
+        localStorage.setItem('gtoken_expiry', Date.now() + 3500 * 1000);
+      }
+    },
+    error_callback: () => {}
+  });
+  _tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function afterSignIn() {
+  // Save session so it persists after close
+  if (currentUser) {
+    localStorage.setItem('guser_session', JSON.stringify(currentUser));
+  }
+  // Update avatar
+  var av = document.getElementById('userAv');
+  var avP = document.getElementById('userAvPlaceholder');
+  if (av && currentUser && currentUser.avatar) {
+    av.src = currentUser.avatar; av.style.display = 'block';
+    if (avP) avP.style.display = 'none';
+  } else if (avP) {
+    if (av) av.style.display = 'none';
+    avP.style.display = 'flex';
+    avP.textContent = (currentUser && currentUser.name ? currentUser.name[0] : 'U').toUpperCase();
+  }
+  // Update name/email fields
+  var fields = {
+    'umName': currentUser ? currentUser.name || '' : '',
+    'umEmail': currentUser ? currentUser.email || '' : '',
+    'settingAccountEmail': currentUser ? currentUser.email || '' : '',
+    'profileName': currentUser ? currentUser.name || '' : '',
+    'profileEmail': currentUser ? currentUser.email || '' : ''
+  };
+  Object.keys(fields).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = fields[id];
+  });
+  // Hide login, show app
+  var ls = document.getElementById('loginScreen'); if (ls) ls.classList.add('hidden');
+  var ss = document.getElementById('setupScreen'); if (ss) ss.classList.add('hidden');
+  var tb = document.getElementById('topBar'); if (tb) tb.style.display = 'flex';
+  var bn = document.getElementById('bottomNav'); if (bn) bn.style.display = 'flex';
+  // Boot app
+  bootApp().then(function() {
+    if (!_accessToken) silentTokenRequest(); else initDriveSync();
+  });
+}
+
+
+function signOut() {
+  if (!confirm('Sign out?')) return;
+  currentUser = null; _accessToken = null; _driveFileId = null; _driveReady = false;
+  localStorage.removeItem('guser_session');
+  localStorage.removeItem('gtoken_expiry');
+  for (const k of Object.keys(_cache)) delete _cache[k];
+  document.getElementById('topBar').style.display = 'none';
+  document.getElementById('bottomNav').style.display = 'none';
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  closeUserMenu();
+  if (window.google && window.google.accounts) {
+    google.accounts.oauth2.revoke(_accessToken || '', () => {});
+  }
+}
+
+/* ── Invite code (kept for signup flow) ── */
+function copyInviteCode() {
+  navigator.clipboard?.writeText('47392815').then(() => {
+    alert('✅ Invite code copied!\n\n47392815\n\nShare this with anyone you want to give access.');
+  }).catch(() => { alert('Your invite code is:\n\n47392815'); });
+}
+
+/* ═══════════════════════════════════════════════════════
+   GOOGLE DRIVE STORAGE
+═══════════════════════════════════════════════════════ */
+async function driveReq(method, url, body, extraHeaders) {
+  // Refresh token if expired
+  const expiry = parseInt(localStorage.getItem('gtoken_expiry') || '0');
+  if (Date.now() > expiry - 60000) refreshTokenSilently();
+
+  const headers = { Authorization: 'Bearer ' + _accessToken, ...extraHeaders };
+  const opts = { method, headers };
+  if (body !== undefined) {
+    if (typeof body === 'string') { headers['Content-Type'] = 'application/json'; opts.body = body; }
+    else opts.body = body;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  opts.signal = controller.signal;
+  try {
+    const res = await fetch(url, opts);
+    clearTimeout(timeout);
+    if (res.status === 401) { _accessToken = null; _driveReady = false; throw new Error('Token expired'); }
+    if (!res.ok) throw new Error('Drive ' + res.status + ': ' + await res.text());
+    const ct = res.headers.get('content-type') || '';
+    return ct.includes('application/json') ? res.json() : res.text();
+  } catch(e) { clearTimeout(timeout); throw e; }
+}
+
+async function findOrCreateDriveFile() {
+  // Search for existing file
+  const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+  const list = await driveReq('GET',
+    `https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name)&pageSize=5`
+  );
+  if (list.files && list.files.length > 0) {
+    _driveFileId = list.files[0].id;
+    // Read contents
+    const raw = await driveReq('GET',
+      `https://www.googleapis.com/drive/v3/files/${_driveFileId}?alt=media`
+    );
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  }
+  // Create new file
+  const boundary = 'tracker_boundary_001';
+  const meta = JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' });
+  const fileContent = JSON.stringify({ _app: 'daily-tracker', _created: new Date().toISOString() });
+  const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${fileContent}\r\n--${boundary}--`;
+  const created = await driveReq('POST',
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+    body,
+    { 'Content-Type': `multipart/related; boundary=${boundary}` }
+  );
+  _driveFileId = created.id;
+  return { _app: 'daily-tracker' };
+}
+
+async function writeToDrive(data) {
+  if (!_driveFileId || !_accessToken) return;
+  await driveReq('PATCH',
+    `https://www.googleapis.com/upload/drive/v3/files/${_driveFileId}?uploadType=media`,
+    JSON.stringify(data),
+    { 'Content-Type': 'application/json' }
+  );
+}
+
+async function initDriveSync() {
+  setSyncState('loading', 'Connecting to Drive…');
+  if (!_accessToken) { setSyncState('idle'); return; }
+  try {
+    const data = await findOrCreateDriveFile();
+    if (data && typeof data === 'object') {
+      // Merge cloud data into cache
+      const prefix = currentUser ? currentUser.id + '_' : '';
+      let changed = false;
+      for (const [k, v] of Object.entries(data)) {
+        if (k.startsWith('_')) continue;
+        _cache[k] = v;
+        try { localStorage.setItem('t_' + k, JSON.stringify(v)); } catch(e) {}
+        changed = true;
+      }
+      if (changed) await bootApp();
+    }
+    _driveReady = true;
+    updateSyncBadge();
+    setSyncState('saved', 'Drive connected ✓');
+  } catch(e) {
+    console.warn('Drive sync failed:', e.message);
+    setSyncState('error', 'Drive unavailable — using local data');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   IN-MEMORY STORE — Drive + localStorage
+═══════════════════════════════════════════════════════ */
+let _writeTimer = null, _dirty = false;
+const _cache = {};
+
+function uk(key) { return currentUser ? currentUser.id + '_' + key : key; }
+
+const Store = {
+  async get(key) {
+    const ukey = uk(key);
+    if (ukey in _cache) return _cache[ukey];
+    try { const v = localStorage.getItem('t_' + ukey); if (v) { _cache[ukey] = JSON.parse(v); return _cache[ukey]; } } catch(e) {}
+    return null;
+  },
+  async set(key, val) {
+    const ukey = uk(key);
+    _cache[ukey] = val;
+    try { localStorage.setItem('t_' + ukey, JSON.stringify(val)); } catch(e) {}
+    if (_driveReady) { _dirty = true; clearTimeout(_writeTimer); _writeTimer = setTimeout(flushToDrive, 1200); }
+  }
+};
+
+async function flushToDrive() {
+  if (!_dirty || !_driveReady || !_accessToken) return;
+  _dirty = false;
+  setSyncState('syncing', 'Saving to Drive…');
+  try {
+    // Build object with all user keys
+    const prefix = currentUser ? currentUser.id + '_' : '';
+    const out = { _app: 'daily-tracker', _updated: new Date().toISOString() };
+    for (const [k, v] of Object.entries(_cache)) { out[k] = v; }
+    await writeToDrive(out);
+    setSyncState('saved', 'Saved to Drive ✓');
+  } catch(e) {
+    console.warn('Drive write failed:', e.message);
+    setSyncState('error', 'Save failed — kept locally');
+    _dirty = true; setTimeout(flushToDrive, 8000);
+  }
+}
+
+function setSyncState(state, msg) {
+  const bar = document.getElementById('syncBar');
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncMsg');
+  if (state === 'idle') { bar.className = ''; bar.style.maxHeight = '0'; bar.style.padding = '0'; return; }
+  bar.className = 'active ' + state;
+  bar.style.maxHeight = '32px'; bar.style.padding = '5px 16px';
+  txt.textContent = msg || '';
+  dot.className = 'sync-dot' + (state === 'syncing' || state === 'loading' ? ' spin' : '');
+  if (state === 'saved' || state === 'error') setTimeout(() => setSyncState('idle'), 2500);
+}
+
+function updateSyncBadge() {
+  const lbl = document.getElementById('syncStatusLabel');
+  const btn = document.getElementById('syncManageBtn');
+  const driveEl = document.getElementById('profileDriveStatus');
+  if (lbl) lbl.textContent = _driveReady ? '☁️ Google Drive connected — auto syncing' : '💾 Local storage — tap Reconnect to sync';
+  if (btn) btn.textContent = _driveReady ? 'Connected ✓' : 'Reconnect';
+  if (driveEl) driveEl.textContent = _driveReady ? '☁️ Google Drive connected' : '💾 Local storage only';
+  if (driveEl) driveEl.style.color = _driveReady ? 'var(--accent2)' : 'var(--muted)';
+}
+
+function showSyncInfo() {
+  if (_driveReady) {
+    alert('✅ Google Drive connected!\nYour data syncs automatically.');
+  } else {
+    if (confirm('💾 Drive not connected.\n\nTap OK to reconnect Google Drive.')) {
+      silentTokenRequest();
+    }
+  }
+}
+
+/* ── Setup screen not needed for Drive — skip it ── */
+function connectJSONBin() {}
+function skipToLocal() {
+  document.getElementById('setupScreen').classList.add('hidden');
+  updateSyncBadge(); bootApp();
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROFILE PANEL
+═══════════════════════════════════════════════════════ */
+function toggleProfilePanel() {
+  const panel = document.getElementById('profilePanel');
+  const overlay = document.getElementById('profileOverlay');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    closeProfilePanel();
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    // Update profile info
+    if (currentUser) {
+      document.getElementById('profileName').textContent = currentUser.name || currentUser.username || 'My Account';
+      document.getElementById('profileEmail').textContent = currentUser.email || ('@' + (currentUser.username || ''));
+      const img = document.getElementById('profileAvatarImg');
+      const initial = document.getElementById('profileAvatarInitial');
+      if (currentUser.avatar) {
+        img.src = currentUser.avatar; img.style.display = 'block'; initial.style.display = 'none';
+      } else {
+        img.style.display = 'none'; initial.style.display = 'block';
+        initial.textContent = (currentUser.name || currentUser.username || 'U')[0].toUpperCase();
+      }
+    }
+    const driveEl = document.getElementById('profileDriveStatus');
+    if (driveEl) driveEl.textContent = _driveReady ? '☁️ Google Drive connected' : '💾 Local storage only';
+    // Default to theme tab
+    switchProfileTab('theme');
+  }
+}
+
+function closeProfilePanel() {
+  document.getElementById('profilePanel')?.classList.remove('open');
+  document.getElementById('profileOverlay')?.classList.remove('open');
+}
+
+function switchProfileTab(tab) {
+  ['theme','settings','backup'].forEach(t => {
+    document.getElementById('ptab-' + t)?.classList.toggle('active', t === tab);
+    const panel = document.getElementById('profilePanel-' + t);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+// Keep old functions as stubs so nothing breaks
+function toggleUserMenu() { toggleProfilePanel(); }
+function closeUserMenu() { closeProfilePanel(); }
+function openBackupModal() { toggleProfilePanel(); setTimeout(() => switchProfileTab('backup'), 100); }
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════ */
+let currentTab = 'home';
+function openTab(tab) {
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab)?.classList.add('active');
+  document.getElementById('navBtn-' + tab)?.classList.add('active');
+  currentTab = tab;
+  window.scrollTo(0, 0);
+  if (tab === 'progress') { renderProgress(); }
+  if (tab === 'goals') { renderExamList(); renderLectureGoals(); renderRevisionGoals(); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL HELPERS
+═══════════════════════════════════════════════════════ */
+function openModal(id) { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+});
+
+/* ═══════════════════════════════════════════════════════
+   UNDO SYSTEM
+═══════════════════════════════════════════════════════ */
+let undoStack = null;
+let undoTimer = null;
+
+function pushUndo(msg, undoFn) {
+  undoStack = undoFn;
+  const toast = document.getElementById('undoToast');
+  document.getElementById('undoMsg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { toast.classList.remove('show'); undoStack = null; }, 4500);
+}
+
+function doUndo() {
+  if (undoStack) { undoStack(); undoStack = null; }
+  document.getElementById('undoToast').classList.remove('show');
+  clearTimeout(undoTimer);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATE HELPERS
+═══════════════════════════════════════════════════════ */
+function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function addDays(s, n) { const [y,mo,d] = s.split('-').map(Number), dt = new Date(y, mo-1, d); dt.setDate(dt.getDate() + n); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+function fmtDate(s) { const [y,mo,d] = s.split('-').map(Number); return new Date(y,mo-1,d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); }
+function fmtDateLong(s) { const [y,mo,d] = s.split('-').map(Number); return new Date(y,mo-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+function daysBetween(a, b) { const p = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); }; return Math.round((p(b)-p(a))/86400000); }
+function weekStart() { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+/* ═══════════════════════════════════════════════════════
+   XP & LEVEL SYSTEM
+═══════════════════════════════════════════════════════ */
+const XP_PER_LEVEL = 100;
+async function getXP() { return (await Store.get('xp_data')) || { xp: 0, level: 1 }; }
+async function addXP(amount, reason) {
+  const data = await getXP();
+  data.xp += amount;
+  while (data.xp >= XP_PER_LEVEL) { data.xp -= XP_PER_LEVEL; data.level++; }
+  await Store.set('xp_data', data);
+  updateTopBarXP(data);
+  await checkBadges();
+}
+function updateTopBarXP(data) {
+  if (!data) return;
+  // Update home stats
+  const statLvl = document.getElementById('statLevel'); if (statLvl) statLvl.textContent = data.level;
+  const lvlDisp = document.getElementById('levelDisplay'); if (lvlDisp) lvlDisp.textContent = data.level;
+  const xpFill = document.getElementById('xpBarFill'); if (xpFill) xpFill.style.width = (data.xp / XP_PER_LEVEL * 100) + '%';
+  const xpDisp = document.getElementById('xpDisplay'); if (xpDisp) xpDisp.textContent = `${data.xp} / ${XP_PER_LEVEL} XP`;
+  const xpNext = document.getElementById('xpToNext'); if (xpNext) xpNext.textContent = `${XP_PER_LEVEL - data.xp} XP to next level`;
+  const lvlSub = document.getElementById('levelSubtitle'); if (lvlSub) lvlSub.textContent = data.level >= 10 ? '🔥 Expert!' : data.level >= 5 ? '⚡ Rising Star' : 'Keep going!';
+}
+
+/* ═══════════════════════════════════════════════════════
+   STREAK SYSTEM
+═══════════════════════════════════════════════════════ */
+async function updateStreak() {
+  const today = todayStr();
+  let s = (await Store.get('streak_data')) || { streak: 0, lastDate: '', freezes: 0, lastFreezeEarned: '' };
+  const yesterday = addDays(today, -1);
+  if (s.lastDate === today) { renderStreakUI(s); return; }
+  if (s.lastDate === yesterday) {
+    s.streak++;
+    if (s.streak % 7 === 0) { s.freezes = (s.freezes || 0) + 1; }
+  } else if (s.lastDate && s.lastDate !== yesterday) {
+    // Missed — check freeze
+    if ((s.freezes || 0) > 0 && s.lastDate === addDays(today, -2)) {
+      // Auto-use? No — only if manually used
+      s.streak = 0;
+    } else {
+      s.streak = 1;
+    }
+  } else {
+    s.streak = 1;
+  }
+  s.lastDate = today;
+  await Store.set('streak_data', s);
+  renderStreakUI(s);
+  // streak shown in home stats only
+  document.getElementById('statStreak').textContent = s.streak;
+}
+
+function renderStreakUI(s) {
+  document.getElementById('streakNum').textContent = s.streak;
+  document.getElementById('freezeCount').textContent = s.freezes || 0;
+  // streak shown in home stats only
+  document.getElementById('statStreak').textContent = s.streak;
+}
+
+async function useFreeze() {
+  let s = (await Store.get('streak_data')) || { streak: 0, lastDate: '', freezes: 0 };
+  if ((s.freezes || 0) <= 0) { alert('No freezes available. Earn one by maintaining a 7-day streak!'); return; }
+  if (!confirm('Use a streak freeze to protect your current streak?')) return;
+  s.freezes--;
+  await Store.set('streak_data', s);
+  renderStreakUI(s);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOOD TRACKER
+═══════════════════════════════════════════════════════ */
+async function setMood(val) {
+  const today = todayStr();
+  const moods = (await Store.get('mood_data')) || {};
+  moods[today] = val;
+  await Store.set('mood_data', moods);
+  renderMoodUI(moods[today]);
+}
+
+async function loadMood() {
+  const today = todayStr();
+  const moods = (await Store.get('mood_data')) || {};
+  renderMoodUI(moods[today] || 0);
+}
+
+function renderMoodUI(val) {
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.dataset.mood) === val);
+  });
+  const labels = { 5: '😄 Great', 4: '😊 Good', 3: '😐 Okay', 2: '😟 Low', 1: '😢 Bad' };
+  document.getElementById('moodSaved').textContent = val ? 'Today: ' + labels[val] : 'Tap to log your mood';
+}
+
+/* ═══════════════════════════════════════════════════════
+   DAILY QUOTE
+═══════════════════════════════════════════════════════ */
+const QUOTES = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "The harder I work, the luckier I get.", author: "Samuel Goldwyn" },
+  { text: "Knowledge is power. Information is liberating.", author: "Kofi Annan" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+  { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+  { text: "A little progress each day adds up to big results.", author: "Unknown" },
+  { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
+  { text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+  { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+  { text: "Learning never exhausts the mind.", author: "Leonardo da Vinci" },
+  { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+  { text: "Great things never come from comfort zones.", author: "Unknown" },
+  { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
+  { text: "Dream big and dare to fail.", author: "Norman Vaughan" },
+  { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
+  { text: "Strive for progress, not perfection.", author: "Unknown" },
+  { text: "The mind is not a vessel to be filled, but a fire to be kindled.", author: "Plutarch" },
+  { text: "Every day is a chance to be better than yesterday.", author: "Unknown" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" }
+];
+
+function renderDailyQuote() {
+  try {
+    const d = new Date();
+    const doy = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+    const q = QUOTES[doy % QUOTES.length];
+    const qt = document.getElementById('quoteText');
+    const qa = document.getElementById('quoteAuthor');
+    if (qt) qt.textContent = q.text;
+    if (qa) qa.textContent = '— ' + q.author;
+  } catch(e) {}
+}
+// Call quote render as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  renderDailyQuote();
+});
+
+/* ═══════════════════════════════════════════════════════
+   CONSISTENCY SCORE
+═══════════════════════════════════════════════════════ */
+async function calcConsistency() {
+  const today = todayStr();
+  const ws = weekStart();
+  let days = 0, active = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    if (d > today) break;
+    days++;
+    const logs = (await Store.get('daily_logs')) || {};
+    const todos = (await Store.get('todo_data')) || {};
+    const moods = (await Store.get('mood_data')) || {};
+    const hasLog = logs[d] && (logs[d].did || logs[d].learned);
+    const hasMood = !!moods[d];
+    const hasTodo = todos[d] && todos[d].some(t => t.done);
+    if (hasLog || hasMood || hasTodo) active++;
+  }
+  const pct = days > 0 ? Math.round((active / days) * 100) : 0;
+  document.getElementById('statConsistency').textContent = pct + '%';
+  document.getElementById('consistencyNum').textContent = pct + '%';
+  const offset = 283 - (283 * pct / 100);
+  document.getElementById('consistencyCircle').style.strokeDashoffset = offset;
+  document.getElementById('consistencyBreakdown').innerHTML =
+    `✍️ Journal: ${days} days tracked<br>😊 Mood logged: checked<br>✅ Tasks done: checked<br>📊 Active days: ${active} / ${days}`;
+  return pct;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   TODO LIST
+═══════════════════════════════════════════════════════ */
+function openAddTodoModal() { openModal('todoModal'); setTimeout(() => document.getElementById('todoInput').focus(), 100); }
+
+async function saveTodo() {
+  const text = document.getElementById('todoInput').value.trim();
+  if (!text) return;
+  const today = todayStr();
+  const todos = (await Store.get('todo_data')) || {};
+  if (!todos[today]) todos[today] = [];
+  todos[today].push({ id: Date.now(), text, done: false });
+  await Store.set('todo_data', todos);
+  document.getElementById('todoInput').value = '';
+  closeModal('todoModal');
+  await renderTodos();
+  await addXP(1, 'todo_added');
+}
+
+async function toggleTodo(id) {
+  const today = todayStr();
+  const todos = (await Store.get('todo_data')) || {};
+  const item = (todos[today] || []).find(t => t.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  await Store.set('todo_data', todos);
+  if (item.done) await addXP(2, 'todo_done');
+  await renderTodos();
+}
+
+async function deleteTodo(id) {
+  const today = todayStr();
+  const todos = (await Store.get('todo_data')) || {};
+  const prev = todos[today] ? [...todos[today]] : [];
+  const deleted = prev.find(t => t.id === id);
+  todos[today] = (todos[today] || []).filter(t => t.id !== id);
+  await Store.set('todo_data', todos);
+  await renderTodos();
+  pushUndo('To-do deleted', async () => {
+    todos[today] = prev;
+    await Store.set('todo_data', todos);
+    await renderTodos();
+  });
+}
+
+async function renderTodos() {
+  const today = todayStr();
+  const todos = (await Store.get('todo_data')) || {};
+  const list = todos[today] || [];
+  const el = document.getElementById('todoList');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:10px">No tasks yet — tap + Add!</div>'; document.getElementById('todoProgress').textContent = ''; return; }
+  el.innerHTML = list.map(t => `
+    <div class="todo-item ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})">
+      <div class="todo-check">${t.done ? '✓' : ''}</div>
+      <div class="todo-text">${t.text}</div>
+      <span class="todo-del" onclick="event.stopPropagation();deleteTodo(${t.id})">✕</span>
+    </div>`).join('');
+  const done = list.filter(t => t.done).length;
+  document.getElementById('todoProgress').textContent = `${done} / ${list.length} completed`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   QUICK NOTES
+═══════════════════════════════════════════════════════ */
+let notesTimer = null;
+async function loadNotes() {
+  const notes = await Store.get('quick_notes');
+  document.getElementById('quickNotes').value = notes || '';
+}
+function saveNotes() {
+  clearTimeout(notesTimer);
+  notesTimer = setTimeout(async () => {
+    await Store.set('quick_notes', document.getElementById('quickNotes').value);
+  }, 800);
+}
+
+/* ═══════════════════════════════════════════════════════
+   POMODORO TIMER
+═══════════════════════════════════════════════════════ */
+let timerInterval = null, timerRunning = false, timerSeconds = 0, timerTotal = 0;
+let timerIsBreak = false, timerCurrentSession = 1, timerTotalSessions = 4;
+let timerStudyMins = 25, timerBreakMins = 5;
+const TIMER_CIRCUMFERENCE = 427;
+
+function setPreset(name, el) {
+  document.querySelectorAll('.preset-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const cf = document.getElementById('customFields');
+  if (name === 'custom') { cf.classList.add('show'); return; }
+  cf.classList.remove('show');
+  const presets = { classic: [25,5,4], deep: [50,10,2], quick: [15,3,6] };
+  const [s, b, n] = presets[name];
+  timerStudyMins = s; timerBreakMins = b; timerTotalSessions = n;
+  timerReset();
+}
+
+function getCustomValues() {
+  timerStudyMins = parseInt(document.getElementById('customStudy').value) || 25;
+  timerBreakMins = parseInt(document.getElementById('customBreak').value) || 5;
+  timerTotalSessions = parseInt(document.getElementById('customSessions').value) || 4;
+}
+
+function timerStart() {
+  if (document.getElementById('customFields').classList.contains('show')) getCustomValues();
+  if (!timerRunning) {
+    if (timerSeconds === 0) {
+      timerSeconds = timerIsBreak ? timerBreakMins * 60 : timerStudyMins * 60;
+      timerTotal = timerSeconds;
+    }
+    timerRunning = true;
+    document.getElementById('timerStartBtn').style.display = 'none';
+    document.getElementById('timerPauseBtn').style.display = 'inline-flex';
+    timerInterval = setInterval(timerTick, 1000);
+  }
+}
+
+function timerPause() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timerStartBtn').style.display = 'inline-flex';
+  document.getElementById('timerPauseBtn').style.display = 'none';
+}
+
+function timerReset() {
+  timerPause();
+  timerIsBreak = false; timerCurrentSession = 1; timerSeconds = 0;
+  updateTimerUI(timerStudyMins * 60, timerStudyMins * 60, false);
+}
+
+function timerSkip() {
+  clearInterval(timerInterval); timerRunning = false;
+  timerNextPhase();
+}
+
+async function timerTick() {
+  timerSeconds--;
+  updateTimerUI(timerSeconds, timerTotal, timerIsBreak);
+  if (timerSeconds <= 0) {
+    clearInterval(timerInterval); timerRunning = false;
+    playBeep();
+    if (!timerIsBreak) {
+      // Study session complete
+      await logStudySession();
+      await addXP(8, 'study_session');
+    }
+    timerNextPhase();
+  }
+}
+
+function timerNextPhase() {
+  if (!timerIsBreak) {
+    if (timerCurrentSession >= timerTotalSessions) {
+      timerReset(); alert('🎉 All sessions complete! Great work!'); return;
+    }
+    timerIsBreak = true;
+    timerSeconds = timerBreakMins * 60;
+    timerTotal = timerSeconds;
+  } else {
+    timerIsBreak = false;
+    timerCurrentSession++;
+    timerSeconds = timerStudyMins * 60;
+    timerTotal = timerSeconds;
+  }
+  updateTimerUI(timerSeconds, timerTotal, timerIsBreak);
+  document.getElementById('timerStartBtn').style.display = 'inline-flex';
+  document.getElementById('timerPauseBtn').style.display = 'none';
+}
+
+function updateTimerUI(secs, total, isBreak) {
+  const m = Math.floor(secs / 60), s = secs % 60;
+  document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('timerPhase').textContent = isBreak ? 'Break ☕' : 'Study 📚';
+  document.getElementById('timerSessionCount').textContent = `Session ${timerCurrentSession} of ${timerTotalSessions}`;
+  const pct = total > 0 ? secs / total : 1;
+  const offset = TIMER_CIRCUMFERENCE * (1 - pct);
+  const circle = document.getElementById('timerRingCircle');
+  circle.setAttribute('stroke-dashoffset', offset);
+  circle.className = isBreak ? 'break-prog' : 'prog';
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880; gain.gain.value = 0.3;
+    osc.start(); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+async function logStudySession() {
+  const today = todayStr();
+  const sessions = (await Store.get('study_sessions')) || {};
+  sessions[today] = (sessions[today] || 0) + 1;
+  await Store.set('study_sessions', sessions);
+  const count = Object.values(sessions).reduce((a,b) => a+b, 0);
+  document.getElementById('timerSessionsLabel').textContent = `Sessions: ${sessions[today] || 0} today`;
+}
+
+async function loadTimerSessions() {
+  const today = todayStr();
+  const sessions = (await Store.get('study_sessions')) || {};
+  document.getElementById('timerSessionsLabel').textContent = `Sessions: ${sessions[today] || 0} today`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CYCLE TASKS (Recurring Tasks)
+═══════════════════════════════════════════════════════ */
+let activeTaskId = null, editingTaskId = null;
+
+async function getTasks() {
+  let tasks = await Store.get('cycle_tasks');
+  if (!tasks) {
+    const old = await Store.get('cycle_data');
+    if (old && old.taskName) {
+      tasks = [{ id: Date.now(), name: old.taskName, interval: 5, startDate: old.startDate || todayStr(), done: old.done || {} }];
+      await Store.set('cycle_tasks', tasks);
+    } else tasks = [];
+  }
+  return tasks;
+}
+
+async function renderTaskTabs() {
+  const tasks = await getTasks();
+  const tabsEl = document.getElementById('taskTabs');
+  if (!tasks.length) {
+    tabsEl.innerHTML = '<div style="font-size:0.79rem;color:var(--muted);padding:4px 0 8px">No tasks yet — tap + Add Task!</div>';
+    document.getElementById('mainCycles').innerHTML = '';
+    document.getElementById('cycleNote').textContent = '';
+    return;
+  }
+  if (!activeTaskId || !tasks.find(t => t.id === activeTaskId)) activeTaskId = tasks[0].id;
+  tabsEl.innerHTML = tasks.map(t => `
+    <div class="task-tab ${t.id === activeTaskId ? 'active' : ''}" onclick="selectTask(${t.id})">
+      <span>${t.name}</span>
+      <span style="display:flex;gap:3px;margin-left:2px">
+        <span onclick="event.stopPropagation();openEditTaskModal(${t.id})" style="font-size:0.67rem;opacity:0.7;cursor:pointer" title="Edit">✏️</span>
+        <span onclick="event.stopPropagation();deleteTask(${t.id})" style="font-size:0.7rem;opacity:0.6;cursor:pointer;line-height:1" title="Delete">✕</span>
+      </span>
+    </div>`).join('');
+  await renderCycles();
+}
+
+async function selectTask(id) { activeTaskId = id; await renderTaskTabs(); }
+
+function openAddTaskModal() {
+  editingTaskId = null;
+  document.getElementById('taskModalTitle').textContent = '➕ Add New Task';
+  document.getElementById('tmName').value = '';
+  document.getElementById('tmInterval').value = '5';
+  document.getElementById('tmStartDate').value = todayStr();
+  openModal('taskModal');
+}
+
+async function openEditTaskModal(id) {
+  const tasks = await getTasks(); const t = tasks.find(t => t.id === id); if (!t) return;
+  editingTaskId = id;
+  document.getElementById('taskModalTitle').textContent = '✏️ Edit Task';
+  document.getElementById('tmName').value = t.name;
+  document.getElementById('tmInterval').value = t.interval || 5;
+  document.getElementById('tmStartDate').value = t.startDate || todayStr();
+  openModal('taskModal');
+}
+
+async function saveTaskModal() {
+  const name = document.getElementById('tmName').value.trim();
+  const interval = parseInt(document.getElementById('tmInterval').value) || 5;
+  const startDate = document.getElementById('tmStartDate').value || todayStr();
+  if (!name) { alert('Please enter a task name.'); return; }
+  let tasks = await getTasks();
+  if (editingTaskId) {
+    const t = tasks.find(t => t.id === editingTaskId);
+    if (t) { t.name = name; t.interval = interval; t.startDate = startDate; }
+  } else {
+    tasks.push({ id: Date.now(), name, interval, startDate, done: {} });
+  }
+  await Store.set('cycle_tasks', tasks);
+  closeModal('taskModal');
+  await renderTaskTabs();
+}
+
+async function deleteTask(id) {
+  const tasks = await getTasks();
+  const deleted = tasks.find(t => t.id === id);
+  const newTasks = tasks.filter(t => t.id !== id);
+  await Store.set('cycle_tasks', newTasks);
+  if (activeTaskId === id) activeTaskId = newTasks.length ? newTasks[0].id : null;
+  await renderTaskTabs();
+  pushUndo(`Task "${deleted?.name}" deleted`, async () => {
+    const cur = await getTasks(); cur.push(deleted); await Store.set('cycle_tasks', cur); await renderTaskTabs();
+  });
+}
+
+async function renderCycles() {
+  const tasks = await getTasks(); const task = tasks.find(t => t.id === activeTaskId);
+  if (!task) { document.getElementById('mainCycles').innerHTML = ''; document.getElementById('cycleNote').textContent = ''; return; }
+  const { startDate = todayStr(), name: taskName = 'Task', done = {}, interval = 5 } = task;
+  const today = todayStr();
+  const [sy,sm,sd] = startDate.split('-').map(Number), [ty,tm,td] = today.split('-').map(Number);
+  const diffDays = Math.round((new Date(ty,tm-1,td) - new Date(sy,sm-1,sd)) / 86400000);
+  const currentIdx = Math.max(0, Math.floor(diffDays / interval));
+  const mainGrid = document.getElementById('mainCycles'); mainGrid.innerHTML = '';
+  const slots = currentIdx > 0 ? [currentIdx-1, currentIdx, currentIdx+1] : [currentIdx, currentIdx+1];
+  slots.forEach(idx => {
+    const dueDate = addDays(startDate, idx * interval);
+    const isToday = dueDate === today, isPast = dueDate < today, isDone = !!done[dueDate];
+    const diffD = daysBetween(today, dueDate), label = isToday ? '📍 Today' : isPast ? `${Math.abs(diffD)}d ago` : `In ${diffD}d`;
+    const item = document.createElement('div'); item.className = 'cycle-item' + (isToday ? ' active-day' : '') + (isDone ? ' done' : '');
+    item.innerHTML = `<div class="cycle-date">${fmtDate(dueDate)}</div><div class="cycle-label">${taskName}</div><div class="cycle-interval">Every ${interval}d</div><div class="cycle-badge">${label}</div><button class="check-btn" onclick="markDone(${task.id},'${dueDate}')" ${isDone ? 'disabled' : ''}>${isDone ? '✓ Done' : 'Mark Done'}</button>`;
+    mainGrid.appendChild(item);
+  });
+  const note = document.getElementById('cycleNote'), nextDue = findNextDue(startDate, today, done, interval);
+  if (nextDue === today) note.textContent = '✨ Today is your task day!';
+  else if (nextDue < today) note.textContent = `⚠ Missed on ${fmtDate(nextDue)}`;
+  else { const d = daysBetween(today, nextDue); note.textContent = `Next: ${fmtDate(nextDue)} · in ${d} day${d !== 1 ? 's' : ''}`; }
+  const histGrid = document.getElementById('histGrid'); histGrid.innerHTML = '';
+  for (let i = 0; i < currentIdx; i++) {
+    const dueDate = addDays(startDate, i * interval); if (dueDate >= today) break;
+    histGrid.innerHTML += smallCard(dueDate, taskName, done[dueDate] ? '✓ Done' : 'Missed', !!done[dueDate], !done[dueDate], task.id);
+  }
+  if (!histGrid.innerHTML) histGrid.innerHTML = '<div style="font-size:0.77rem;color:var(--muted);padding:4px">No past entries yet.</div>';
+  const futGrid = document.getElementById('futGrid'); futGrid.innerHTML = '';
+  for (let i = currentIdx+1; i <= currentIdx+6; i++) { const dueDate = addDays(startDate, i * interval); futGrid.innerHTML += smallCard(dueDate, taskName, `In ${daysBetween(today, dueDate)}d`, false, false, task.id); }
+}
+
+function smallCard(dueDate, taskName, badge, isDone, showBtn, taskId) {
+  return `<div class="cycle-item ${isDone ? 'done' : ''}"><div class="cycle-date">${fmtDate(dueDate)}</div><div class="cycle-label">${taskName}</div><div class="cycle-badge">${badge}</div>${showBtn ? `<button class="check-btn" onclick="markDone(${taskId},'${dueDate}')">Mark Done</button>` : ''}</div>`;
+}
+
+function findNextDue(s, t, d, interval) { for (let i = 0; i < 300; i++) { const x = addDays(s, i * interval); if (x >= t && !d[x]) return x; } return addDays(t, interval); }
+
+async function markDone(taskId, date) {
+  const tasks = await getTasks(); const task = tasks.find(t => t.id === taskId); if (!task) return;
+  task.done = task.done || {}; task.done[date] = true;
+  await Store.set('cycle_tasks', tasks); await renderCycles();
+}
+
+function togglePanel(id) { document.getElementById(id)?.classList.toggle('open'); }
+
+/* ═══════════════════════════════════════════════════════
+   DAILY JOURNAL
+═══════════════════════════════════════════════════════ */
+let currentLogDate = todayStr();
+function shiftLogDay(n) { currentLogDate = addDays(currentLogDate, n); renderLog(); }
+async function renderLog() {
+  const today = todayStr();
+  document.getElementById('logDateLabel').textContent = fmtDate(currentLogDate) + (currentLogDate === today ? ' (Today)' : currentLogDate < today ? ' (Past)' : ' (Future)');
+  const logs = (await Store.get('daily_logs')) || {}, entry = logs[currentLogDate] || {};
+  document.getElementById('logDid').value = entry.did || '';
+  document.getElementById('logLearned').value = entry.learned || '';
+  document.getElementById('logLectures').value = entry.lectures ?? 0;
+  document.getElementById('saveStatus').textContent = '';
+}
+async function saveLog() {
+  const logs = (await Store.get('daily_logs')) || {};
+  const lec = parseInt(document.getElementById('logLectures').value) || 0;
+  const prev = logs[currentLogDate] || {};
+  logs[currentLogDate] = { did: document.getElementById('logDid').value, learned: document.getElementById('logLearned').value, lectures: lec };
+  await Store.set('daily_logs', logs);
+  if (document.getElementById('logDid').value || document.getElementById('logLearned').value) await addXP(5, 'journal');
+  if (lec > 0 && lec !== (prev.lectures || 0)) await addXP(lec * 3, 'lecture');
+  const st = document.getElementById('saveStatus'); st.style.opacity = 1;
+  st.textContent = `✓ Saved${JB_READY ? ' — syncing…' : ''}`;
+  setTimeout(() => st.style.opacity = 0, 2500);
+}
+function clearLogFields() { document.getElementById('logDid').value = ''; document.getElementById('logLearned').value = ''; document.getElementById('logLectures').value = 0; }
+async function openJournalHistory() {
+  const logs = (await Store.get('daily_logs')) || {};
+  const dates = Object.keys(logs).filter(k => logs[k] && (logs[k].did || logs[k].learned || logs[k].lectures)).sort((a,b) => b.localeCompare(a));
+  const body = document.getElementById('journalHistoryBody'), today = todayStr();
+  if (!dates.length) { body.innerHTML = '<div class="hist-empty">No entries yet. Start writing!</div>'; }
+  else { body.innerHTML = dates.map(d => { const e = logs[d]; return `<div class="hist-entry"><div class="hist-entry-date">${fmtDateLong(d)}${d===today?' 📍':''} <button class="hist-jump" onclick="jumpToDate('${d}')">Open</button></div>${e.did?`<div class="hist-entry-row"><span>Did:</span>${e.did.slice(0,100)}${e.did.length>100?'…':''}</div>`:''}${e.learned?`<div class="hist-entry-row"><span>Learned:</span>${e.learned.slice(0,100)}${e.learned.length>100?'…':''}</div>`:''}${e.lectures?`<div class="hist-entry-row"><span>Lectures:</span>${e.lectures}</div>`:''}</div>`; }).join(''); }
+  openModal('journalHistoryModal');
+}
+function jumpToDate(d) { currentLogDate = d; renderLog(); closeModal('journalHistoryModal'); openTab('study'); document.querySelector('.card')?.scrollIntoView({behavior:'smooth'}); }
+
+/* ═══════════════════════════════════════════════════════
+   FLASHCARDS
+═══════════════════════════════════════════════════════ */
+let fcIndex = 0, fcFlipped = false;
+
+function openAddFlashcardModal() {
+  document.getElementById('fcSubject').value = '';
+  document.getElementById('fcQuestion').value = '';
+  document.getElementById('fcAnswer').value = '';
+  openModal('flashcardModal');
+}
+
+async function saveFlashcard() {
+  const subj = document.getElementById('fcSubject').value.trim();
+  const q = document.getElementById('fcQuestion').value.trim();
+  const a = document.getElementById('fcAnswer').value.trim();
+  if (!q || !a) { alert('Please enter both question and answer.'); return; }
+  const cards = (await Store.get('flashcards')) || [];
+  cards.push({ id: Date.now(), subject: subj || 'General', question: q, answer: a, known: false });
+  await Store.set('flashcards', cards);
+  closeModal('flashcardModal');
+  fcIndex = cards.length - 1;
+  await renderFlashcards();
+}
+
+async function renderFlashcards() {
+  const cards = (await Store.get('flashcards')) || [];
+  const area = document.getElementById('flashcardArea');
+  if (!cards.length) { area.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:14px">No flashcards yet — tap + Add to create your first card!</div>'; return; }
+  if (fcIndex >= cards.length) fcIndex = cards.length - 1;
+  const card = cards[fcIndex];
+  fcFlipped = false;
+  area.innerHTML = `
+    <div class="fc-nav">
+      <button class="btn btn-ghost btn-sm" onclick="fcPrev()">‹ Prev</button>
+      <span class="fc-count">${fcIndex + 1} / ${cards.length} · ${card.subject}</span>
+      <button class="btn btn-ghost btn-sm" onclick="fcNext()">Next ›</button>
+    </div>
+    <div class="flashcard-scene" onclick="flipCard()">
+      <div class="flashcard-inner" id="fcInner">
+        <div class="flashcard-face flashcard-front"><div><div class="flashcard-q">${card.question}</div><div class="flashcard-hint">Tap to reveal answer</div></div></div>
+        <div class="flashcard-face flashcard-back"><div class="flashcard-a">${card.answer}</div></div>
+      </div>
+    </div>
+    <div class="fc-actions">
+      <button class="btn btn-p3 btn-sm" onclick="markFCKnown(${card.id})">${card.known ? '✅ Known' : 'Mark Known'}</button>
+      <button class="btn btn-p1 btn-sm" onclick="markFCReview(${card.id})">🔄 Review</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteFC(${card.id})">🗑</button>
+    </div>
+    <div style="font-size:0.74rem;color:var(--muted);text-align:center">Known: ${cards.filter(c=>c.known).length} / ${cards.length}</div>
+  `;
+}
+
+function flipCard() { fcFlipped = !fcFlipped; document.getElementById('fcInner')?.classList.toggle('flipped', fcFlipped); }
+async function fcPrev() { const cards = (await Store.get('flashcards'))||[]; fcIndex = (fcIndex - 1 + cards.length) % cards.length; await renderFlashcards(); }
+async function fcNext() { const cards = (await Store.get('flashcards'))||[]; fcIndex = (fcIndex + 1) % cards.length; await renderFlashcards(); }
+async function markFCKnown(id) { const cards=(await Store.get('flashcards'))||[]; const c=cards.find(c=>c.id===id); if(c){c.known=true; await Store.set('flashcards',cards); await renderFlashcards();} }
+async function markFCReview(id) { const cards=(await Store.get('flashcards'))||[]; const c=cards.find(c=>c.id===id); if(c){c.known=false; await Store.set('flashcards',cards); await renderFlashcards();} }
+async function deleteFC(id) {
+  const cards=(await Store.get('flashcards'))||[]; const del=cards.find(c=>c.id===id);
+  await Store.set('flashcards',cards.filter(c=>c.id!==id)); fcIndex=Math.max(0,fcIndex-1); await renderFlashcards();
+  pushUndo('Flashcard deleted', async()=>{ const c=(await Store.get('flashcards'))||[]; c.push(del); await Store.set('flashcards',c); await renderFlashcards(); });
+}
+
+/* ═══════════════════════════════════════════════════════
+   FORMULA SHEET
+═══════════════════════════════════════════════════════ */
+function openAddFormulaModal() { document.getElementById('fmSubject').value=''; document.getElementById('fmName').value=''; document.getElementById('fmExpr').value=''; document.getElementById('fmDesc').value=''; openModal('formulaModal'); }
+async function saveFormula() {
+  const subj=document.getElementById('fmSubject').value.trim(), name=document.getElementById('fmName').value.trim(), expr=document.getElementById('fmExpr').value.trim(), desc=document.getElementById('fmDesc').value.trim();
+  if(!name||!expr){alert('Please enter formula name and expression.');return;}
+  const formulas=(await Store.get('formulas'))||[];
+  formulas.push({id:Date.now(),subject:subj||'General',name,expr,desc});
+  await Store.set('formulas',formulas); closeModal('formulaModal'); await renderFormulas();
+}
+async function renderFormulas() {
+  const formulas=(await Store.get('formulas'))||[];
+  const search=document.getElementById('formulaSearch').value.toLowerCase();
+  const el=document.getElementById('formulaList');
+  if(!formulas.length){el.innerHTML='<div class="goal-empty">No formulas yet. Tap + Add!</div>';return;}
+  const filtered=formulas.filter(f=>!search||(f.name.toLowerCase().includes(search)||f.subject.toLowerCase().includes(search)||f.expr.toLowerCase().includes(search)));
+  if(!filtered.length){el.innerHTML='<div class="goal-empty">No formulas match your search.</div>';return;}
+  el.innerHTML=filtered.map(f=>`
+    <div class="formula-item" id="fm-${f.id}" onclick="toggleFormula(${f.id})">
+      <div class="formula-subject">${f.subject}</div>
+      <div class="formula-name">${f.name}</div>
+      <div class="formula-expr" onclick="copyFormula(event,'${f.expr}')">${f.expr} <span style="font-size:0.66rem;opacity:0.6">(tap to copy)</span></div>
+      ${f.desc?`<div class="formula-desc">${f.desc}</div>`:''}
+      <div style="display:flex;gap:5px;margin-top:6px"><button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteFormula(${f.id})">🗑 Delete</button></div>
+    </div>`).join('');
+}
+function toggleFormula(id){document.getElementById('fm-'+id)?.classList.toggle('expanded');}
+function copyFormula(e,expr){e.stopPropagation();navigator.clipboard?.writeText(expr).then(()=>alert('Copied: '+expr)).catch(()=>alert('Formula: '+expr));}
+async function deleteFormula(id){
+  const formulas=(await Store.get('formulas'))||[]; const del=formulas.find(f=>f.id===id);
+  await Store.set('formulas',formulas.filter(f=>f.id!==id)); await renderFormulas();
+  pushUndo('Formula deleted',async()=>{const f=(await Store.get('formulas'))||[];f.push(del);await Store.set('formulas',f);await renderFormulas();});
+}
+
+/* ═══════════════════════════════════════════════════════
+   MISTAKE DIARY
+═══════════════════════════════════════════════════════ */
+function openAddMistakeModal(){document.getElementById('mkSubject').value='';document.getElementById('mkWrong').value='';document.getElementById('mkCorrect').value='';openModal('mistakeModal');}
+async function saveMistake(){
+  const subj=document.getElementById('mkSubject').value.trim(),wrong=document.getElementById('mkWrong').value.trim(),correct=document.getElementById('mkCorrect').value.trim();
+  if(!wrong){alert('Please describe the mistake.');return;}
+  const mistakes=(await Store.get('mistakes'))||[];
+  mistakes.unshift({id:Date.now(),subject:subj||'General',wrong,correct,date:todayStr()});
+  await Store.set('mistakes',mistakes); closeModal('mistakeModal'); await renderMistakes();
+}
+async function renderMistakes(){
+  const mistakes=(await Store.get('mistakes'))||[]; const el=document.getElementById('mistakeList');
+  if(!mistakes.length){el.innerHTML='<div class="goal-empty">No mistakes logged yet. Keep track to avoid repeating them!</div>';return;}
+  el.innerHTML=mistakes.map(m=>`
+    <div class="mistake-item">
+      <div class="mistake-subject">${m.subject} · ${fmtDate(m.date)}</div>
+      <div class="mistake-text">❌ ${m.wrong}</div>
+      ${m.correct?`<div class="mistake-correct">✅ ${m.correct}</div>`:''}
+      <button class="btn btn-danger btn-xs" style="margin-top:5px" onclick="deleteMistake(${m.id})">🗑 Delete</button>
+    </div>`).join('');
+}
+async function deleteMistake(id){
+  const mistakes=(await Store.get('mistakes'))||[]; const del=mistakes.find(m=>m.id===id);
+  await Store.set('mistakes',mistakes.filter(m=>m.id!==id)); await renderMistakes();
+  pushUndo('Mistake log deleted',async()=>{const m=(await Store.get('mistakes'))||[];m.unshift(del);await Store.set('mistakes',m);await renderMistakes();});
+}
+
+/* ═══════════════════════════════════════════════════════
+   READING TRACKER
+═══════════════════════════════════════════════════════ */
+function openAddBookModal(){document.getElementById('bkTitle').value='';document.getElementById('bkTotal').value='';document.getElementById('bkRead').value='0';openModal('bookModal');}
+async function saveBook(){
+  const title=document.getElementById('bkTitle').value.trim(),total=parseInt(document.getElementById('bkTotal').value)||0,read=parseInt(document.getElementById('bkRead').value)||0;
+  if(!title||!total){alert('Please enter book title and total pages.');return;}
+  const books=(await Store.get('books'))||[];
+  books.push({id:Date.now(),title,total,read:Math.min(read,total),startDate:todayStr()});
+  await Store.set('books',books); closeModal('bookModal'); await renderBooks();
+}
+async function openUpdateBook(id){
+  document.getElementById('bkUpdateId').value=id;
+  const books=(await Store.get('books'))||[]; const b=books.find(b=>b.id===id);
+  if(b) document.getElementById('bookUpdateTitle').textContent=`📖 ${b.title}`;
+  document.getElementById('bkPagesInput').value='';
+  openModal('bookUpdateModal');
+}
+async function updateBookPages(){
+  const id=parseInt(document.getElementById('bkUpdateId').value), pages=parseInt(document.getElementById('bkPagesInput').value)||0;
+  const books=(await Store.get('books'))||[]; const b=books.find(b=>b.id===id); if(!b)return;
+  b.read=Math.min(b.total,b.read+pages);
+  await Store.set('books',books); closeModal('bookUpdateModal'); await renderBooks();
+}
+async function renderBooks(){
+  const books=(await Store.get('books'))||[]; const el=document.getElementById('bookList');
+  if(!books.length){el.innerHTML='<div class="goal-empty">No books added yet. Start tracking your reading!</div>';return;}
+  el.innerHTML=books.map(b=>{
+    const pct=b.total>0?Math.round((b.read/b.total)*100):0;
+    const remaining=b.total-b.read;
+    const done=b.read>=b.total;
+    return`<div class="book-item">
+      <div class="book-title-row"><div class="book-name">${b.title}${done?' ✅':''}</div><div class="book-pct">${pct}%</div></div>
+      <div class="book-progress"><div class="book-fill" style="width:${pct}%"></div></div>
+      <div class="book-stats"><span>${b.read} / ${b.total} pages</span><span>${done?'Finished! 🎉':remaining+' pages left'}</span></div>
+      <div style="display:flex;gap:5px;margin-top:7px">
+        ${!done?`<button class="btn btn-p2 btn-sm" onclick="openUpdateBook(${b.id})">📖 Log Pages</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function deleteBook(id){
+  const books=(await Store.get('books'))||[]; const del=books.find(b=>b.id===id);
+  await Store.set('books',books.filter(b=>b.id!==id)); await renderBooks();
+  pushUndo(`Book "${del?.title}" deleted`,async()=>{const b=(await Store.get('books'))||[];b.push(del);await Store.set('books',b);await renderBooks();});
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   EXAM COUNTDOWN
+═══════════════════════════════════════════════════════ */
+function openAddExamModal(){document.getElementById('exName').value='';document.getElementById('exDate').value='';openModal('examModal');}
+async function saveExam(){
+  const name=document.getElementById('exName').value.trim(),date=document.getElementById('exDate').value;
+  if(!name||!date){alert('Please enter exam name and date.');return;}
+  const exams=(await Store.get('exams'))||[];
+  exams.push({id:Date.now(),name,date});
+  exams.sort((a,b)=>a.date.localeCompare(b.date));
+  await Store.set('exams',exams); closeModal('examModal'); await renderExamList();
+}
+async function renderExamList(){
+  const exams=(await Store.get('exams'))||[]; const el=document.getElementById('examList');
+  const today=todayStr();
+  if(!exams.length){el.innerHTML='<div class="goal-empty">No exams added. Add your upcoming exams to see the countdown!</div>';return;}
+  el.innerHTML=exams.map(e=>{
+    const days=daysBetween(today,e.date);
+    const cls=days<=3?'red':days<=7?'yellow':'green';
+    return`<div class="exam-item">
+      <div><div class="exam-name">${e.name}</div><div class="exam-date">${fmtDate(e.date)}</div></div>
+      <div style="text-align:center">
+        <div class="exam-days ${cls}">${days<0?'Past':days===0?'Today!':days}</div>
+        <div class="exam-unit">${days<0?'days ago':days===0?'':days===1?'day left':'days left'}</div>
+        <button class="btn btn-danger btn-xs" style="margin-top:4px" onclick="deleteExam(${e.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function deleteExam(id){
+  const exams=(await Store.get('exams'))||[]; const del=exams.find(e=>e.id===id);
+  await Store.set('exams',exams.filter(e=>e.id!==id)); await renderExamList();
+  pushUndo(`Exam "${del?.name}" deleted`,async()=>{const e=(await Store.get('exams'))||[];e.push(del);e.sort((a,b)=>a.date.localeCompare(b.date));await Store.set('exams',e);await renderExamList();});
+}
+
+/* ═══════════════════════════════════════════════════════
+   LECTURE GOALS
+═══════════════════════════════════════════════════════ */
+let currentLecTab='active';
+
+function switchGoalTab(tab){
+  document.getElementById('gtab-lec').classList.toggle('active',tab==='lec');
+  document.getElementById('gtab-rev').classList.toggle('active',tab==='rev');
+  document.getElementById('goalPanel-lec').style.display=tab==='lec'?'block':'none';
+  document.getElementById('goalPanel-rev').style.display=tab==='rev'?'block':'none';
+}
+
+function switchLecTab(tab){
+  currentLecTab=tab;
+  const aBtn=document.getElementById('lecTabActive'),uBtn=document.getElementById('lecTabUpcoming'),addBtn=document.getElementById('addLecBtn');
+  aBtn.className=tab==='active'?'btn btn-p4 btn-sm':'btn btn-ghost btn-sm';
+  uBtn.className=tab==='upcoming'?'btn btn-p5 btn-sm':'btn btn-ghost btn-sm';
+  addBtn.textContent=tab==='active'?'+ Add Active Goal':'+ Add Upcoming Goal';
+  addBtn.className=tab==='active'?'btn btn-full btn-p4':'btn btn-full btn-p5';
+  renderLectureGoals();
+}
+
+async function addLectureGoal(){
+  const subject=document.getElementById('lgSubject').value.trim(),total=parseInt(document.getElementById('lgTotal').value)||0,deadline=document.getElementById('lgDeadline').value,startDate=document.getElementById('lgStartDate').value||'';
+  if(!subject||!total||!deadline){alert('Please fill in subject, total lectures and deadline.');return;}
+  const goals=(await Store.get('lecture_goals'))||[];
+  goals.push({id:Date.now(),subject,total,done:0,deadline,startDate,type:currentLecTab});
+  await Store.set('lecture_goals',goals);
+  document.getElementById('lgSubject').value='';document.getElementById('lgTotal').value='';document.getElementById('lgDeadline').value='';document.getElementById('lgStartDate').value='';
+  await renderLectureGoals();
+}
+
+async function updateLecDone(id,delta){const goals=(await Store.get('lecture_goals'))||[],g=goals.find(g=>g.id===id);if(!g)return;g.done=Math.max(0,Math.min(g.total,(g.done||0)+delta));await Store.set('lecture_goals',goals);if(g.done>=g.total)await addXP(10,'goal_complete');else await addXP(3,'lecture');await renderLectureGoals();}
+async function setLecDoneManual(id,val){const goals=(await Store.get('lecture_goals'))||[],g=goals.find(g=>g.id===id);if(!g)return;g.done=Math.max(0,Math.min(g.total,parseInt(val)||0));await Store.set('lecture_goals',goals);await renderLectureGoals();}
+async function moveLecGoal(id,newType){const goals=(await Store.get('lecture_goals'))||[],g=goals.find(g=>g.id===id);if(!g)return;g.type=newType;await Store.set('lecture_goals',goals);await renderLectureGoals();}
+async function deleteLectureGoal(id){
+  const goals=(await Store.get('lecture_goals'))||[]; const del=goals.find(g=>g.id===id);
+  await Store.set('lecture_goals',goals.filter(g=>g.id!==id)); await renderLectureGoals();
+  pushUndo(`Goal "${del?.subject}" deleted`,async()=>{const g=(await Store.get('lecture_goals'))||[];g.push(del);await Store.set('lecture_goals',g);await renderLectureGoals();});
+}
+
+async function renderLectureGoals(){
+  const allGoals=(await Store.get('lecture_goals'))||[];
+  const goals=allGoals.filter(g=>(g.type||'active')===currentLecTab);
+  const el=document.getElementById('lectureGoalsList');
+  if(!goals.length){el.innerHTML=`<div class="goal-empty">${currentLecTab==='active'?'No active goals. Add one above!':'No upcoming goals. Plan ahead!'}</div>`;return;}
+  const today=todayStr();
+  el.innerHTML=goals.map(g=>{
+    const pct=g.total>0?Math.round((g.done/g.total)*100):0,isDone=g.done>=g.total,daysLeft=daysBetween(today,g.deadline);
+    const urgClass=daysLeft<=3&&!isDone?'urgent':'',needed=g.total-g.done;
+    const daysText=isDone?'✓ Done!':daysLeft<0?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Due today!':`${daysLeft}d left`;
+    const pace=!isDone&&daysLeft>0?` · ${(needed/daysLeft).toFixed(1)} lec/day`:'';
+    const isUpcoming=(g.type||'active')==='upcoming';
+    const paceAlert=!isDone&&!isUpcoming&&daysLeft>0&&needed/daysLeft>5?`<div class="pace-alert">⚠️ Behind pace! Need ${Math.ceil(needed/daysLeft)} lec/day to finish on time.</div>`:'';
+    const startInfo=g.startDate?`<div style="font-size:0.68rem;color:var(--muted);margin-bottom:3px">Starts: ${fmtDate(g.startDate)}</div>`:'';
+    const moveBtn=isUpcoming?`<button class="btn btn-p3 btn-xs" onclick="moveLecGoal(${g.id},'active')">▶ Start</button>`:`<button class="btn btn-p5 btn-xs" onclick="moveLecGoal(${g.id},'upcoming')">⏸ Upcoming</button>`;
+    return`<div class="lec-goal-card ${isUpcoming?'upcoming':''}">
+      <span class="lec-tag ${isUpcoming?'upcoming-t':'active-t'}">${isUpcoming?'🔜 Upcoming':'📘 Active'}</span>
+      ${startInfo}
+      <div class="lec-goal-top"><div><div class="lec-goal-name">${g.subject}</div><div class="lec-goal-dl ${urgClass}">${fmtDate(g.deadline)} · ${daysText}${pace}</div></div><div style="font-size:0.9rem;font-weight:700;color:${isDone?'var(--accent2)':'var(--accent)'}">${pct}%</div></div>
+      <div class="prog-wrap"><div class="prog-fill ${isDone?'done':''}" style="width:${pct}%"></div></div>
+      <div class="lec-stats"><span>${g.done}/${g.total}</span><span>${needed>0?needed+' left':'🎉 Done!'}</span></div>
+      ${paceAlert}
+      <div class="lec-actions">
+        ${!isUpcoming?`<button class="lec-inc" onclick="updateLecDone(${g.id},-1)">−1</button><button class="lec-inc" onclick="updateLecDone(${g.id},1)">+1</button><button class="lec-inc" onclick="updateLecDone(${g.id},5)">+5</button><input type="number" min="0" max="${g.total}" value="${g.done}" style="width:44px;padding:3px;border-radius:5px;border:1px solid var(--border);font-size:0.7rem;text-align:center;background:var(--card2);color:var(--text)" onchange="setLecDoneManual(${g.id},this.value)"/>`:``}
+        ${moveBtn}
+        <button class="goal-del-btn" onclick="deleteLectureGoal(${g.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   REVISION GOALS
+═══════════════════════════════════════════════════════ */
+async function addRevisionGoal(){
+  const subject=document.getElementById('rgSubject').value.trim();if(!subject){alert('Please enter a subject name.');return;}
+  const goals=(await Store.get('revision_goals'))||[];
+  if(goals.find(g=>g.subject.toLowerCase()===subject.toLowerCase())){alert('Subject already exists.');return;}
+  goals.push({id:Date.now(),subject,topics:[]});await Store.set('revision_goals',goals);document.getElementById('rgSubject').value='';await renderRevisionGoals();
+}
+async function addTopic(goalId){
+  const inp=document.getElementById('topicInput-'+goalId),val=inp?inp.value.trim():'';if(!val)return;
+  const goals=(await Store.get('revision_goals'))||[],g=goals.find(g=>g.id===goalId);if(!g)return;
+  g.topics.push({id:Date.now(),text:val,done:false});await Store.set('revision_goals',goals);await renderRevisionGoals();
+}
+async function toggleTopic(goalId,topicId){
+  const goals=(await Store.get('revision_goals'))||[],g=goals.find(g=>g.id===goalId);if(!g)return;
+  const t=g.topics.find(t=>t.id===topicId);if(!t)return;t.done=!t.done;
+  await Store.set('revision_goals',goals);if(t.done)await addXP(2,'topic');await renderRevisionGoals();
+}
+async function deleteTopic(goalId,topicId){const goals=(await Store.get('revision_goals'))||[],g=goals.find(g=>g.id===goalId);if(!g)return;g.topics=g.topics.filter(t=>t.id!==topicId);await Store.set('revision_goals',goals);await renderRevisionGoals();}
+async function deleteRevisionGoal(id){if(!confirm('Delete?'))return;await Store.set('revision_goals',((await Store.get('revision_goals'))||[]).filter(g=>g.id!==id));await renderRevisionGoals();}
+async function renderRevisionGoals(){
+  const goals=(await Store.get('revision_goals'))||[],el=document.getElementById('revisionGoalsList');
+  if(!goals.length){el.innerHTML='<div class="goal-empty">No revision subjects. Add a subject above!</div>';return;}
+  el.innerHTML=goals.map(g=>{
+    const total=g.topics.length,doneCount=g.topics.filter(t=>t.done).length,pct=total>0?Math.round((doneCount/total)*100):0;
+    const topicsHTML=g.topics.length?g.topics.map(t=>`<div class="topic-item ${t.done?'done-t':''}" onclick="toggleTopic(${g.id},${t.id})"><div class="topic-check">${t.done?'✓':''}</div><div class="topic-text">${t.text}</div><span onclick="event.stopPropagation();deleteTopic(${g.id},${t.id})" style="color:#d09090;font-size:0.77rem;cursor:pointer;padding:0 3px">×</span></div>`).join(''):'<div style="font-size:0.77rem;color:var(--muted);padding:3px 0 6px">No topics yet.</div>';
+    return`<div class="rev-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px"><div><div class="rev-name">${g.subject}</div><div class="rev-prog-text">${doneCount}/${total} revised${total>0?' · '+pct+'%':''}</div></div><button class="goal-del-btn" onclick="deleteRevisionGoal(${g.id})">🗑</button></div>${total>0?`<div class="prog-wrap" style="margin-bottom:8px"><div class="prog-fill ${pct===100?'done':''}" style="width:${pct}%;background:linear-gradient(90deg,var(--p5),#c090e8)"></div></div>`:''}<div class="topic-list">${topicsHTML}</div><div style="display:flex;gap:6px;margin-top:6px"><input class="inp" id="topicInput-${g.id}" placeholder="Add topic…" style="flex:1" onkeydown="if(event.key==='Enter')addTopic(${g.id})"/><button class="btn btn-p5 btn-sm" onclick="addTopic(${g.id})">Add</button></div></div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   VOCABULARY
+═══════════════════════════════════════════════════════ */
+const WORD_BANK=[
+  {word:"Trepidation",pos:"noun",meaning:"A feeling of fear or nervous agitation about something that may happen.",sentences:["She felt deep trepidation before stepping onto the stage.","With great trepidation, he opened the envelope containing his results.","Despite his trepidation, he delivered a confident and moving speech.","Her trepidation melted away once she saw how welcoming everyone was.","The hikers approached the narrow cliff path with understandable trepidation."]},
+  {word:"Avarice",pos:"noun",meaning:"Extreme greed for wealth or material gain; an insatiable desire to accumulate far more than one needs.",sentences:["His avarice led him to betray his closest business partners.","The villain was driven entirely by avarice, not ambition.","Unchecked avarice stripped the region of its natural resources.","She despised avarice and made a point of giving generously.","History judges leaders whose avarice outweighed their duty."]},
+  {word:"Ephemeral",pos:"adjective",meaning:"Lasting for a very short time; transient. Used for moments, beauty, or fame that quickly fades.",sentences:["The beauty of cherry blossoms is ephemeral, lasting only weeks.","Social media fame can be ephemeral, gone as quickly as it appears.","She captured the ephemeral morning light before the city woke up.","The exhibition explored how ephemeral moments define our memories.","His joy was ephemeral, replaced almost immediately by responsibility."]},
+  {word:"Equanimity",pos:"noun",meaning:"Mental calmness and composure, especially in difficult situations.",sentences:["She faced the devastating diagnosis with remarkable equanimity.","Years of meditation had given him a natural, unforced equanimity.","He maintained equanimity throughout the chaotic product launch.","True equanimity is not indifference — it is deep inner steadiness.","Her equanimity during the crisis inspired everyone around her."]},
+  {word:"Loquacious",pos:"adjective",meaning:"Tending to talk a great deal; very talkative, often more than necessary.",sentences:["Her loquacious nature made her instantly popular at gatherings.","The loquacious professor regularly ran ten minutes over time.","He became surprisingly loquacious after just one cup of coffee.","Despite being loquacious, she always said something worth hearing.","The loquacious child fired questions at the guide without pause."]},
+  {word:"Perspicacious",pos:"adjective",meaning:"Having sharp insight; shrewd and discerning with unusual clarity.",sentences:["The perspicacious investor spotted the trend months before others.","Her analysis immediately changed the team's strategy.","He was perspicacious enough to see through the flattery.","A perspicacious reader catches the subtle irony in the novel.","The detective's mind solved the case before all evidence was in."]},
+  {word:"Sanguine",pos:"adjective",meaning:"Optimistic or positive, especially in difficult situations.",sentences:["Despite the setback, she remained sanguine about the project's future.","His outlook kept the team motivated through a tough quarter.","I am sanguine that conditions will improve significantly by spring.","It is hard to stay sanguine after repeated unexpected failure.","Her sanguine personality was infectious, brightening everyone around her."]},
+  {word:"Obfuscate",pos:"verb",meaning:"To make something unclear or confusing, often deliberately.",sentences:["The politician used dense jargon to obfuscate the real meaning.","Technical writing sometimes obfuscates simple ideas unnecessarily.","She gave vague answers in a clear attempt to obfuscate her role.","Good writing clarifies; poor writing obfuscates.","Layers of bureaucracy were used to obfuscate the truth."]},
+  {word:"Intrepid",pos:"adjective",meaning:"Fearless and adventurous; resolutely courageous in the face of danger.",sentences:["The intrepid journalist reported live from the conflict zone.","She was an intrepid traveller who had visited over eighty countries.","Intrepid climbers reached the summit despite a raging storm.","His approach to business opened doors no one else dared try.","An intrepid spirit separates ordinary paths from extraordinary ones."]},
+  {word:"Taciturn",pos:"adjective",meaning:"Reserved or uncommunicative; saying very little.",sentences:["He was taciturn by nature, preferring to listen than to speak.","The taciturn engineer answered every question with a single clear word.","Despite being taciturn, his writing was deeply and beautifully expressive.","His taciturn response to the news said everything without a word.","She found large gatherings exhausting given her taciturn nature."]},
+  {word:"Vicarious",pos:"adjective",meaning:"Experienced in imagination through the actions or feelings of another.",sentences:["She got vicarious thrills watching extreme sports documentaries.","Many parents unknowingly live vicariously through their children.","He felt vicarious pride when his student won the competition.","Reading great novels lets us live vicariously through fictional lives.","The crowd felt a vicarious triumph when the underdog won."]},
+  {word:"Ameliorate",pos:"verb",meaning:"To make something bad or unsatisfactory better, often gradually.",sentences:["The new policies were designed to ameliorate conditions in poor districts.","Rest and hydration can significantly ameliorate a cold's symptoms.","She worked tirelessly to ameliorate tension between departments.","Planting trees is one way to ameliorate urban heat in cities.","The government introduced subsidies to ameliorate the burden on farmers."]},
+  {word:"Erudite",pos:"adjective",meaning:"Having or showing great knowledge or learning; impressively well-read.",sentences:["The erudite professor discussed history, philosophy and physics in one breath.","Her erudite response at the conference earned a standing ovation.","He wrote in a richly erudite style, admired but not always accessible.","An erudite friend transforms a casual dinner into a fascinating seminar.","She was erudite without ever being condescending — a truly rare quality."]},
+  {word:"Ebullient",pos:"adjective",meaning:"Cheerful and full of energy; overflowing with enthusiasm and high spirits.",sentences:["Her ebullient personality made her a favorite with students and staff.","He arrived at the meeting in an ebullient mood after the wonderful news.","The coach's ebullient celebration fired up the entire squad.","Despite ongoing challenges, she remained ebullient and motivated.","His ebullient laughter was so genuine that it filled the entire room."]},
+  {word:"Alacrity",pos:"noun",meaning:"Brisk and cheerful readiness or willingness to do something.",sentences:["She accepted the challenge with visible alacrity and got to work.","The volunteers responded to the disaster relief call with alacrity.","He tackled the assignment with an alacrity that surprised his manager.","The team's alacrity in solving problems made them highly effective.","With alacrity, she completed the detailed report well before deadline."]},
+  {word:"Implacable",pos:"adjective",meaning:"Unable to be appeased or stopped; relentless and unyielding.",sentences:["The implacable storm battered the coastline for three full days.","She faced the implacable opposition of the committee with resolve.","His implacable determination helped him break through every obstacle.","The villain was portrayed as an implacable, unstoppable force.","Time is implacable — it moves forward for everyone, waiting for no one."]},
+  {word:"Cogent",pos:"adjective",meaning:"Clear, logical, and convincing; compelling and well-constructed.",sentences:["She delivered a cogent argument for restructuring the department.","The lawyer presented cogent evidence that swayed the jury.","His brief but cogent analysis immediately changed the discussion.","A cogent explanation turns even complex ideas into something simple.","The essay was praised for its cogent reasoning and exceptional clarity."]},
+  {word:"Magnanimous",pos:"adjective",meaning:"Generous or forgiving, especially towards a rival; noble and big-hearted.",sentences:["In victory, she was magnanimous and praised her opponent's effort.","It was magnanimous of him to forgive the colleague who undermined him.","The magnanimous gesture of returning the trophy won more admiration than the win.","A truly magnanimous leader lifts others up even with no personal benefit.","His magnanimous response surprised and silenced his harshest critics."]},
+  {word:"Mendacious",pos:"adjective",meaning:"Not telling the truth; given to lying.",sentences:["The mendacious official denied the scandal despite overwhelming evidence.","She grew exhausted by his mendacious promises and finally cut ties.","The report was found to be mendacious and publicly retracted.","A mendacious witness can derail even the strongest court case.","His mendacious account of events deceived no one who was actually present."]},
+  {word:"Propitious",pos:"adjective",meaning:"Giving or indicating a good chance of success; favorable conditions.",sentences:["The clear skies and calm sea made it a propitious day to set sail.","She chose a propitious moment to present her bold idea to the board.","The early sales figures were a propitious sign for the product's success.","Not every moment is propitious for a difficult conversation.","The new partnership began under remarkably propitious circumstances."]},
+  {word:"Inveterate",pos:"adjective",meaning:"Having a habit or interest deeply established and unlikely to change.",sentences:["He was an inveterate traveler who rarely spent two months in the same city.","Her inveterate optimism was both her greatest strength and occasional weakness.","The inveterate gambler could not resist the pull of the card table.","She had been an inveterate reader since the age of four.","His inveterate curiosity drove him to question everything he encountered."]},
+  {word:"Vacillate",pos:"verb",meaning:"To waver between different opinions or actions; to be persistently indecisive.",sentences:["He vacillated for weeks before finally accepting the remarkable job offer.","She tends to vacillate whenever an important decision has to be made.","The committee vacillated on the question, delaying the vote for months.","Stop vacillating and just pick a restaurant!","Leaders who vacillate too openly quickly lose their team's trust."]},
+  {word:"Prodigious",pos:"adjective",meaning:"Remarkably great in size or degree; describing extraordinary talent or output.",sentences:["Mozart displayed prodigious musical talent before his fifth birthday.","She had a prodigious appetite for reading, finishing two books every week.","The team put in a prodigious amount of work to meet the deadline.","His prodigious memory allowed him to recall entire conversations word for word.","The author's prodigious output of thirty novels in twenty years left critics astonished."]},
+  {word:"Perspicuous",pos:"adjective",meaning:"Clearly expressed and easily understood; lucid and transparent in meaning.",sentences:["His perspicuous explanation made the complex theory accessible to everyone.","The lawyer's perspicuous summary helped the jury follow the case.","She had a gift for writing in a perspicuous style without dumbing things down.","The manual was refreshingly perspicuous compared to its predecessors.","A perspicuous argument leaves no room for ambiguity."]}
+];
+
+function speakWord(word, meaning) {
+  if (!window.speechSynthesis) { alert('Audio not supported in this browser.'); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(`${word}. ${meaning}`);
+  u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1;
+  speechSynthesis.speak(u);
+}
+
+let vocabOffset = 0;
+async function initVocab() {
+  const today = todayStr(), state = await Store.get('vocab_state');
+  if (state && state.date === today) { vocabOffset = state.offset; }
+  else { const d = new Date(), s = new Date(d.getFullYear(),0,0); vocabOffset = Math.floor((d-s)/86400000) % Math.floor(WORD_BANK.length/3); await Store.set('vocab_state',{date:today,offset:vocabOffset}); }
+  await renderWords();
+}
+async function showNextWords() { vocabOffset=(vocabOffset+1)%Math.floor(WORD_BANK.length/3); await Store.set('vocab_state',{date:todayStr(),offset:vocabOffset}); await renderWords(); }
+function getActiveWords() { const s=(vocabOffset*3)%WORD_BANK.length; return[WORD_BANK[s%WORD_BANK.length],WORD_BANK[(s+1)%WORD_BANK.length],WORD_BANK[(s+2)%WORD_BANK.length]]; }
+async function renderWords() {
+  const saved=(await Store.get('saved_words'))||[],savedNames=saved.map(w=>w.word);
+  document.getElementById('vocabArea').innerHTML=getActiveWords().map(w=>{
+    const isSaved=savedNames.includes(w.word),uid=w.word.replace(/\s/g,'_');
+    return`<div class="word-card"><div class="word-top"><div><div class="word-title">${w.word}</div><div class="word-pos">${w.pos}</div></div><button class="save-word-btn ${isSaved?'saved':''}" onclick="toggleSaveWord('${w.word}')" id="swbtn-${uid}">${isSaved?'✓ Saved':'🔖 Save'}</button></div><div class="word-meaning">${w.meaning}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="word-audio-btn" onclick="speakWord('${w.word}','${w.meaning.replace(/'/g,"\\'")}')">🔊 Pronounce</button><button class="sentences-toggle" onclick="toggleSentences('${uid}')"><span class="sentences-arrow" id="arr-${uid}">▶</span> Example Sentences</button></div><div class="word-sentences" id="sents-${uid}"><ol style="margin-top:7px">${w.sentences.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>`;
+  }).join('');
+}
+async function toggleSaveWord(word){
+  const entry=WORD_BANK.find(w=>w.word===word);if(!entry)return;
+  const saved=(await Store.get('saved_words'))||[],exists=saved.find(w=>w.word===word);
+  await Store.set('saved_words',exists?saved.filter(w=>w.word!==word):[...saved,entry]);
+  const btn=document.getElementById('swbtn-'+word.replace(/\s/g,'_'));
+  if(btn){if(!exists){btn.textContent='✓ Saved';btn.classList.add('saved');}else{btn.textContent='🔖 Save';btn.classList.remove('saved');}}
+}
+function toggleSentences(uid){document.getElementById('sents-'+uid)?.classList.toggle('open');document.getElementById('arr-'+uid)?.classList.toggle('open');}
+async function openSavedWordsModal(){
+  const saved=(await Store.get('saved_words'))||[],body=document.getElementById('savedWordsBody');
+  if(!saved.length){body.innerHTML='<div class="hist-empty">No words saved yet.<br>Hit 🔖 Save on any word card!</div>';}
+  else{body.innerHTML=saved.map(w=>`<div class="word-card" style="margin-bottom:11px"><div class="word-top"><div><div class="word-title">${w.word}</div><div class="word-pos">${w.pos}</div></div><button class="save-word-btn" style="background:#fde8e8;color:#b03030;border-color:#f0c0c0" onclick="removeSavedWord('${w.word}')">Remove</button></div><div class="word-meaning">${w.meaning}</div><button class="word-audio-btn" onclick="speakWord('${w.word}','${w.meaning.replace(/'/g,"\\'")}')">🔊 Pronounce</button></div>`).join('');}
+  openModal('savedWordsModal');
+}
+async function removeSavedWord(word){await Store.set('saved_words',((await Store.get('saved_words'))||[]).filter(w=>w.word!==word));await openSavedWordsModal();await renderWords();}
+
+
+/* ═══════════════════════════════════════════════════════
+   HINDI SENTENCES
+═══════════════════════════════════════════════════════ */
+const HINDI_SENTENCES = {
+  daily: [
+    {hindi:"आप कैसे हैं?",english:"How are you?",category:"Greetings"},
+    {hindi:"मेरा नाम राज है।",english:"My name is Raj.",category:"Introduction"},
+    {hindi:"कृपया मुझे माफ करें।",english:"Please excuse me.",category:"Polite"},
+    {hindi:"धन्यवाद आपकी मदद के लिए।",english:"Thank you for your help.",category:"Gratitude"},
+    {hindi:"क्या आप हिंदी बोलते हैं?",english:"Do you speak Hindi?",category:"Language"},
+    {hindi:"मुझे पानी चाहिए।",english:"I need water.",category:"Daily"},
+    {hindi:"यह कितने का है?",english:"How much does this cost?",category:"Shopping"},
+    {hindi:"मैं ठीक हूँ।",english:"I am fine.",category:"Greetings"},
+    {hindi:"कल मिलते हैं।",english:"See you tomorrow.",category:"Farewell"},
+    {hindi:"मुझे नहीं पता।",english:"I don't know.",category:"Daily"},
+    {hindi:"समय क्या हुआ है?",english:"What time is it?",category:"Time"},
+    {hindi:"खाना बहुत अच्छा था।",english:"The food was very good.",category:"Food"},
+    {hindi:"मुझे बहुत खुशी हुई।",english:"I am very happy.",category:"Emotions"},
+    {hindi:"क्या आप मेरी मदद कर सकते हैं?",english:"Can you help me?",category:"Request"},
+    {hindi:"मैं थोड़ा थका हुआ हूँ।",english:"I am a little tired.",category:"Feelings"},
+    {hindi:"बाज़ार कहाँ है?",english:"Where is the market?",category:"Direction"},
+    {hindi:"मुझे देर हो गई है।",english:"I am late.",category:"Daily"},
+    {hindi:"आपका स्वागत है।",english:"You are welcome.",category:"Polite"},
+    {hindi:"मैं कल आऊँगा।",english:"I will come tomorrow.",category:"Plans"},
+    {hindi:"यह बहुत सुंदर है।",english:"This is very beautiful.",category:"Appreciation"}
+  ],
+  professional: [
+    {hindi:"बैठक कब होगी?",english:"When will the meeting be?",category:"Office"},
+    {hindi:"कृपया रिपोर्ट ईमेल करें।",english:"Please email the report.",category:"Communication"},
+    {hindi:"मैं इस परियोजना पर काम कर रहा हूँ।",english:"I am working on this project.",category:"Work"},
+    {hindi:"डेडलाइन अगले सोमवार है।",english:"The deadline is next Monday.",category:"Deadlines"},
+    {hindi:"क्या आप विचार साझा कर सकते हैं?",english:"Can you share your thoughts?",category:"Discussion"},
+    {hindi:"मुझे आपकी सलाह चाहिए।",english:"I need your advice.",category:"Professional"},
+    {hindi:"हम अगले सप्ताह समीक्षा करेंगे।",english:"We will review next week.",category:"Planning"},
+    {hindi:"आपका प्रस्ताव स्वीकार कर लिया गया है।",english:"Your proposal has been accepted.",category:"Business"},
+    {hindi:"कृपया इसे दोबारा जाँचें।",english:"Please check this again.",category:"Review"},
+    {hindi:"यह परियोजना समय पर पूरी होनी चाहिए।",english:"This project must be completed on time.",category:"Deadlines"},
+    {hindi:"मुझे अनुमति चाहिए।",english:"I need permission.",category:"Formal"},
+    {hindi:"आपसे मिलकर प्रसन्नता हुई।",english:"It was a pleasure to meet you.",category:"Networking"},
+    {hindi:"क्या हम इस पर चर्चा कर सकते हैं?",english:"Can we discuss this?",category:"Collaboration"},
+    {hindi:"मैं आपको जल्द ही सूचित करूँगा।",english:"I will inform you soon.",category:"Communication"},
+    {hindi:"यह बजट के भीतर है।",english:"This is within the budget.",category:"Finance"},
+    {hindi:"कृपया उपस्थिति दर्ज करें।",english:"Please mark your attendance.",category:"Office"},
+    {hindi:"मैं इस विषय में सहमत हूँ।",english:"I agree on this matter.",category:"Agreement"},
+    {hindi:"क्या आप एक उदाहरण दे सकते हैं?",english:"Can you give an example?",category:"Clarification"},
+    {hindi:"हमें इसे फिर से सोचना होगा।",english:"We will need to rethink this.",category:"Strategy"},
+    {hindi:"यह निर्णय अंतिम है।",english:"This decision is final.",category:"Decision"}
+  ],
+  advanced: [
+    {hindi:"जो बीत गया सो बीत गया, आगे की सोचो।",english:"What has passed is gone; think ahead.",category:"Proverb"},
+    {hindi:"यह परिस्थिति अत्यंत जटिल है।",english:"This situation is extremely complex.",category:"Formal"},
+    {hindi:"उन्होंने गलती स्वीकार करने में संकोच नहीं किया।",english:"They did not hesitate to admit their mistake.",category:"Character"},
+    {hindi:"इस समस्या का समाधान सामूहिक प्रयास से ही संभव है।",english:"This problem can only be solved through collective effort.",category:"Teamwork"},
+    {hindi:"वह अपने निर्णय पर दृढ़ रहा।",english:"He remained firm in his decision.",category:"Determination"},
+    {hindi:"ज्ञान अर्जन की कोई उम्र नहीं होती।",english:"There is no age for acquiring knowledge.",category:"Wisdom"},
+    {hindi:"परिश्रम का फल सदैव मीठा होता है।",english:"The fruit of hard work is always sweet.",category:"Proverb"},
+    {hindi:"समाज की उन्नति व्यक्तिगत प्रयासों पर निर्भर है।",english:"The progress of society depends on individual efforts.",category:"Philosophy"},
+    {hindi:"इस विषय पर गहन शोध की आवश्यकता है।",english:"Deep research is required on this topic.",category:"Academic"},
+    {hindi:"विश्वास और समर्पण सफलता की कुंजी है।",english:"Faith and dedication are the key to success.",category:"Motivation"},
+    {hindi:"संकट में भी उन्होंने अपना धैर्य नहीं खोया।",english:"Even in crisis, they did not lose their patience.",category:"Wisdom"},
+    {hindi:"कठिनाइयाँ मनुष्य को और मजबूत बनाती हैं।",english:"Difficulties make a person stronger.",category:"Proverb"},
+    {hindi:"इस कार्य में पारदर्शिता आवश्यक है।",english:"Transparency is necessary in this work.",category:"Professional"},
+    {hindi:"उनकी वाणी में एक विशेष प्रभाव था।",english:"There was a special influence in their speech.",category:"Communication"},
+    {hindi:"यह अनुभव जीवन भर याद रहेगा।",english:"This experience will be remembered throughout life.",category:"Memory"},
+    {hindi:"उसकी दृष्टि में असाधारण तीक्ष्णता थी।",english:"There was extraordinary sharpness in his vision.",category:"Description"},
+    {hindi:"उन्होंने असाधारण साहस का परिचय दिया।",english:"They demonstrated extraordinary courage.",category:"Praise"},
+    {hindi:"यह घटना इतिहास में दर्ज हो गई।",english:"This event has been recorded in history.",category:"Historical"},
+    {hindi:"उसके विचार अत्यंत प्रगतिशील थे।",english:"His thoughts were extremely progressive.",category:"Ideas"},
+    {hindi:"हर कठिनाई एक अवसर छुपाती है।",english:"Every difficulty hides an opportunity.",category:"Proverb"}
+  ]
+};
+
+let currentHindiLevel = 'daily', currentHindiIndex = 0, hindiRevealed = false;
+
+function setHindiLevel(level, el) {
+  currentHindiLevel = level;
+  document.querySelectorAll('.hindi-level-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentHindiIndex = 0; hindiRevealed = false;
+  renderHindiSentence();
+}
+
+function renderHindiSentence() {
+  const sentences = HINDI_SENTENCES[currentHindiLevel];
+  const s = sentences[currentHindiIndex % sentences.length];
+  hindiRevealed = false;
+  const levelLabel = currentHindiLevel === 'daily' ? 'Daily Speaking' : currentHindiLevel === 'professional' ? 'Professional' : 'Advanced';
+  document.getElementById('hindiArea').innerHTML = `
+    <div class="hindi-card">
+      <div class="hindi-cat">${s.category} · ${levelLabel}</div>
+      <div class="hindi-sentence">${s.hindi}</div>
+      <button class="hindi-reveal-btn" onclick="revealHindi()" id="hindiRevealBtn">👁 Reveal English Translation</button>
+      <div class="hindi-translation" id="hindiTranslation">${s.english}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-p2 btn-sm" onclick="speakHindi(this)" data-text="${s.hindi.replace(/"/g,'&quot;')}">🔊 Listen</button>
+        <button class="btn btn-p3 btn-sm" onclick="saveHindiSentence(this)" data-hindi="${s.hindi.replace(/"/g,'&quot;')}" data-english="${s.english.replace(/"/g,'&quot;')}">📌 Save</button>
+      </div>
+    </div>`;
+}
+
+function revealHindi() {
+  hindiRevealed = !hindiRevealed;
+  document.getElementById('hindiTranslation')?.classList.toggle('show', hindiRevealed);
+  const btn = document.getElementById('hindiRevealBtn');
+  if (btn) btn.textContent = hindiRevealed ? '🙈 Hide Translation' : '👁 Reveal English Translation';
+}
+
+function hindiNext() {
+  currentHindiIndex = (currentHindiIndex + 1) % HINDI_SENTENCES[currentHindiLevel].length;
+  hindiRevealed = false; renderHindiSentence();
+}
+
+function speakHindi(btn) {
+  const text = btn.dataset.text;
+  if (!window.speechSynthesis) { alert('Audio not supported in this browser.'); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'hi-IN'; u.rate = 0.8; u.pitch = 1; speechSynthesis.speak(u);
+}
+
+async function saveHindiSentence(btn) {
+  const hindi = btn.dataset.hindi, english = btn.dataset.english;
+  const saved = (await Store.get('saved_hindi')) || [];
+  if (saved.find(s => s.hindi === hindi)) { alert('Already saved!'); return; }
+  saved.push({ hindi, english, date: todayStr() });
+  await Store.set('saved_hindi', saved); alert('✅ Sentence saved!');
+}
+
+async function openSavedHindiModal() {
+  const saved = (await Store.get('saved_hindi')) || [];
+  const body = document.getElementById('savedHindiBody');
+  if (!saved.length) { body.innerHTML = '<div class="hist-empty">No sentences saved yet.<br>Tap 📌 Save on any sentence!</div>'; }
+  else { body.innerHTML = saved.map((s,i) => `<div class="saved-hindi-item"><div class="saved-hindi-hindi">${s.hindi}</div><div class="saved-hindi-eng">${s.english}</div><div style="display:flex;gap:5px;margin-top:5px"><button class="btn btn-danger btn-xs" onclick="removeHindi(${i})">✕ Remove</button></div></div>`).join(''); }
+  openModal('savedHindiModal');
+}
+
+async function removeHindi(i) {
+  const saved = (await Store.get('saved_hindi')) || [];
+  saved.splice(i, 1); await Store.set('saved_hindi', saved); await openSavedHindiModal();
+}
+
+function initHindi() {
+  const d = new Date(), start = new Date(d.getFullYear(), 0, 0);
+  currentHindiIndex = Math.floor((d - start) / 86400000) % HINDI_SENTENCES[currentHindiLevel].length;
+  renderHindiSentence();
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPENSE TRACKER
+═══════════════════════════════════════════════════════ */
+const CAT_ICONS = { food:'🍔', transport:'🚗', study:'📚', health:'💊', shopping:'🛍', other:'📦' };
+
+async function addExpense() {
+  const desc = document.getElementById('expDesc').value.trim(), amt = parseFloat(document.getElementById('expAmt').value) || 0, cat = document.getElementById('expCat').value;
+  if (!desc || !amt) { alert('Please enter description and amount.'); return; }
+  const expenses = (await Store.get('expenses')) || [];
+  expenses.unshift({ id: Date.now(), desc, amt, cat, date: todayStr() });
+  await Store.set('expenses', expenses);
+  document.getElementById('expDesc').value = ''; document.getElementById('expAmt').value = '';
+  await renderExpenses();
+}
+
+async function renderExpenses() {
+  const expenses = (await Store.get('expenses')) || [];
+  const today = new Date(), monthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('expenseMonthLabel').textContent = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthExp = expenses.filter(e => e.date.startsWith(monthStr));
+  document.getElementById('expMonthTotal').textContent = `₹${monthExp.reduce((s,e) => s+e.amt, 0).toFixed(0)}`;
+  const el = document.getElementById('expenseList');
+  if (!monthExp.length) { el.innerHTML = '<div class="goal-empty">No expenses this month.</div>'; return; }
+  el.innerHTML = monthExp.map(e => `<div class="expense-item"><div class="expense-left"><div class="expense-cat-icon">${CAT_ICONS[e.cat]||'📦'}</div><div><div class="expense-desc">${e.desc}</div><div class="expense-meta">${fmtDate(e.date)} · ${e.cat}</div></div></div><div style="display:flex;align-items:center;gap:7px"><div class="expense-amt">₹${e.amt.toFixed(0)}</div><button class="btn btn-danger btn-xs" onclick="deleteExpense(${e.id})">✕</button></div></div>`).join('');
+  await renderBudgetBars(monthExp);
+}
+
+async function deleteExpense(id) {
+  const expenses = (await Store.get('expenses')) || [], del = expenses.find(e => e.id === id);
+  await Store.set('expenses', expenses.filter(e => e.id !== id)); await renderExpenses();
+  pushUndo('Expense deleted', async () => { const e = (await Store.get('expenses')) || []; e.unshift(del); await Store.set('expenses', e); await renderExpenses(); });
+}
+
+async function saveBudget() {
+  const budget = { income: parseFloat(document.getElementById('budgetIncome').value) || 0 };
+  for (const cat of Object.keys(CAT_ICONS)) budget[cat] = parseFloat(document.getElementById('budCat-' + cat).value) || 0;
+  await Store.set('budget', budget);
+  const expenses = (await Store.get('expenses')) || [];
+  const today = new Date(), monthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  await renderBudgetBars(expenses.filter(e => e.date.startsWith(monthStr)));
+}
+
+async function loadBudget() {
+  const budget = await Store.get('budget'); if (!budget) return;
+  if (budget.income) document.getElementById('budgetIncome').value = budget.income;
+  for (const cat of Object.keys(CAT_ICONS)) { if (budget[cat]) document.getElementById('budCat-' + cat).value = budget[cat]; }
+}
+
+async function renderBudgetBars(monthExp) {
+  const budget = await Store.get('budget'), el = document.getElementById('budgetBars');
+  if (!budget || !Object.values(budget).some(v => v > 0)) { el.innerHTML = ''; return; }
+  el.innerHTML = Object.keys(CAT_ICONS).map(cat => {
+    const spent = monthExp.filter(e => e.cat === cat).reduce((s,e) => s+e.amt, 0), limit = budget[cat] || 0;
+    if (!limit) return '';
+    const pct = Math.min(100, Math.round((spent/limit)*100)), cls = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
+    return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:0.77rem;color:var(--muted);margin-bottom:3px"><span>${CAT_ICONS[cat]} ${cat}</span><span>₹${spent.toFixed(0)} / ₹${limit}</span></div><div class="budget-bar"><div class="budget-fill ${cls}" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEMES
+═══════════════════════════════════════════════════════ */
+function setTheme(theme) {
+  document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+  if (theme !== 'rose') document.body.classList.add('theme-' + theme);
+  localStorage.setItem('app_theme', theme);
+  document.querySelectorAll('[id^="themeBtn-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('themeBtn-' + theme)?.classList.add('active');
+}
+
+function loadTheme() {
+  const theme = localStorage.getItem('app_theme') || 'rose';
+  setTheme(theme);
+}
+
+/* ═══════════════════════════════════════════════════════
+   BADGES
+═══════════════════════════════════════════════════════ */
+const ALL_BADGES = [
+  { id: 'first_login',    emoji: '👋', name: 'Welcome!',         req: 'Open the app for the first time',     check: async () => true },
+  { id: 'streak_3',       emoji: '🔥', name: '3-Day Streak',      req: '3 consecutive days',                  check: async () => { const s=await Store.get('streak_data'); return (s?.streak||0)>=3; } },
+  { id: 'streak_7',       emoji: '💪', name: 'Week Warrior',      req: '7-day streak',                        check: async () => { const s=await Store.get('streak_data'); return (s?.streak||0)>=7; } },
+  { id: 'streak_30',      emoji: '🏆', name: 'Monthly Master',    req: '30-day streak',                       check: async () => { const s=await Store.get('streak_data'); return (s?.streak||0)>=30; } },
+  { id: 'journal_1',      emoji: '✍️', name: 'First Entry',       req: 'Write your first journal entry',      check: async () => { const l=await Store.get('daily_logs'); return l && Object.values(l).some(e=>e.did||e.learned); } },
+  { id: 'journal_10',     emoji: '📔', name: 'Journaling Habit',  req: '10 journal entries',                  check: async () => { const l=await Store.get('daily_logs'); return l && Object.values(l).filter(e=>e.did||e.learned).length>=10; } },
+  { id: 'lecture_10',     emoji: '📚', name: '10 Lectures',       req: 'Watch 10 lectures total',             check: async () => { const l=await Store.get('daily_logs'); return l && Object.values(l).reduce((s,e)=>s+(e.lectures||0),0)>=10; } },
+  { id: 'lecture_50',     emoji: '🎓', name: '50 Lectures',       req: 'Watch 50 lectures total',             check: async () => { const l=await Store.get('daily_logs'); return l && Object.values(l).reduce((s,e)=>s+(e.lectures||0),0)>=50; } },
+  { id: 'goal_1',         emoji: '🎯', name: 'Goal Setter',       req: 'Add your first lecture goal',         check: async () => { const g=await Store.get('lecture_goals'); return (g||[]).length>0; } },
+  { id: 'goal_complete',  emoji: '✅', name: 'Goal Crusher',      req: 'Complete a lecture goal',             check: async () => { const g=await Store.get('lecture_goals'); return (g||[]).some(g=>g.done>=g.total); } },
+  { id: 'flashcard_10',   emoji: '🃏', name: 'Card Collector',    req: 'Create 10 flashcards',                check: async () => { const f=await Store.get('flashcards'); return (f||[]).length>=10; } },
+  { id: 'todo_complete',  emoji: '☑️', name: 'Task Master',       req: 'Complete 10 to-do items',             check: async () => { const t=await Store.get('todo_data'); return t && Object.values(t).flat().filter(i=>i.done).length>=10; } },
+  { id: 'mood_7',         emoji: '😊', name: 'Mood Tracker',      req: 'Log mood for 7 days',                 check: async () => { const m=await Store.get('mood_data'); return Object.keys(m||{}).length>=7; } },
+  { id: 'study_session',  emoji: '⏱', name: 'Focused Mind',      req: 'Complete 5 study sessions',           check: async () => { const s=await Store.get('study_sessions'); return s && Object.values(s).reduce((a,b)=>a+b,0)>=5; } },
+  { id: 'formula_5',      emoji: '📐', name: 'Formula Keeper',    req: 'Save 5 formulas',                     check: async () => { const f=await Store.get('formulas'); return (f||[]).length>=5; } },
+  { id: 'book_1',         emoji: '📖', name: 'Bookworm',          req: 'Add your first book',                 check: async () => { const b=await Store.get('books'); return (b||[]).length>0; } },
+  { id: 'hindi_10',       emoji: '🇮🇳', name: 'Hindi Learner',    req: 'Save 10 Hindi sentences',             check: async () => { const h=await Store.get('saved_hindi'); return (h||[]).length>=10; } },
+  { id: 'xp_100',         emoji: '⭐', name: 'Rising Star',       req: 'Earn 100 total XP',                   check: async () => { const x=await Store.get('xp_data'); return ((x?.level||1)-1)*100+(x?.xp||0)>=100; } },
+  { id: 'level_5',        emoji: '🌟', name: 'Level 5',           req: 'Reach Level 5',                       check: async () => { const x=await Store.get('xp_data'); return (x?.level||1)>=5; } },
+  { id: 'level_10',       emoji: '💫', name: 'Level 10',          req: 'Reach Level 10',                      check: async () => { const x=await Store.get('xp_data'); return (x?.level||1)>=10; } },
+];
+
+async function checkBadges() {
+  const earned = (await Store.get('earned_badges')) || [];
+  let newEarned = false;
+  for (const b of ALL_BADGES) {
+    if (!earned.includes(b.id)) {
+      try { const ok = await b.check(); if (ok) { earned.push(b.id); newEarned = true; await addXP(15, 'badge'); } } catch(e) {}
+    }
+  }
+  if (newEarned) await Store.set('earned_badges', earned);
+}
+
+async function renderBadges() {
+  const earned = (await Store.get('earned_badges')) || [];
+  document.getElementById('badgeProgress').textContent = `${earned.length} / ${ALL_BADGES.length} earned`;
+  document.getElementById('badgeGrid').innerHTML = ALL_BADGES.map(b => `
+    <div class="badge-item ${earned.includes(b.id) ? 'earned' : 'locked'}" onclick="showBadgeDetail('${b.id}')">
+      <div class="badge-emoji">${b.emoji}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-req">${b.req}</div>
+    </div>`).join('');
+}
+
+async function showBadgeDetail(id) {
+  const b = ALL_BADGES.find(x => x.id === id); if (!b) return;
+  const earned = (await Store.get('earned_badges')) || [];
+  const isEarned = earned.includes(b.id);
+  document.getElementById('badgeDetailEmoji').textContent = b.emoji;
+  document.getElementById('badgeDetailName').textContent = b.name;
+  document.getElementById('badgeDetailDesc').textContent = b.req;
+  document.getElementById('badgeDetailStatus').textContent = isEarned ? '✅ Earned!' : '🔒 Not yet earned';
+  document.getElementById('badgeDetailStatus').style.color = isEarned ? 'var(--accent2)' : 'var(--muted)';
+  openModal('badgeModal');
+}
+
+/* ═══════════════════════════════════════════════════════
+   WEEKLY SUMMARY & MOOD CHART
+═══════════════════════════════════════════════════════ */
+async function renderWeeklySummary() {
+  const today = todayStr(), ws = weekStart();
+  const logs = (await Store.get('daily_logs')) || {};
+  const moods = (await Store.get('mood_data')) || {};
+  const sessions = (await Store.get('study_sessions')) || {};
+  const todos = (await Store.get('todo_data')) || {};
+  let totalLec = 0, journalDays = 0, moodTotal = 0, moodDays = 0, studySessions = 0, todoDone = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i); if (d > today) break;
+    if (logs[d]) { totalLec += logs[d].lectures || 0; if (logs[d].did || logs[d].learned) journalDays++; }
+    if (moods[d]) { moodTotal += moods[d]; moodDays++; }
+    studySessions += sessions[d] || 0;
+    todoDone += (todos[d] || []).filter(t => t.done).length;
+  }
+  const avgMood = moodDays > 0 ? (moodTotal / moodDays).toFixed(1) : '-';
+  const moodLabels = { '5.0':'😄 Great','4.0':'😊 Good','3.0':'😐 Okay','2.0':'😟 Low','1.0':'😢 Bad' };
+  const moodText = avgMood !== '-' ? (moodLabels[parseFloat(avgMood).toFixed(1)] || `${avgMood}/5`) : 'Not logged';
+  document.getElementById('weeklySummary').innerHTML = `
+    <div class="week-summary-item"><span class="week-summary-key">📚 Lectures watched</span><span class="week-summary-val">${totalLec}</span></div>
+    <div class="week-summary-item"><span class="week-summary-key">✍️ Journal days</span><span class="week-summary-val">${journalDays} / 7</span></div>
+    <div class="week-summary-item"><span class="week-summary-key">😊 Average mood</span><span class="week-summary-val">${moodText}</span></div>
+    <div class="week-summary-item"><span class="week-summary-key">⏱ Study sessions</span><span class="week-summary-val">${studySessions}</span></div>
+    <div class="week-summary-item"><span class="week-summary-key">✅ To-dos completed</span><span class="week-summary-val">${todoDone}</span></div>`;
+  // Mood chart
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const moodChart = document.getElementById('moodChart');
+  moodChart.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    const mood = moods[d] || 0;
+    const pct = mood > 0 ? (mood / 5) * 100 : 5;
+    const colors = { 5:'#4caf50', 4:'#8bc34a', 3:'#ffc107', 2:'#ff9800', 1:'#f44336', 0:'var(--border)' };
+    moodChart.innerHTML += `<div class="mood-bar-wrap"><div class="mood-bar" style="height:${pct}%;background:${colors[mood]};margin-top:${100-pct}%"></div><div class="mood-day-label">${days[new Date(d.split('-')[0],d.split('-')[1]-1,d.split('-')[2]).getDay()]}</div></div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROGRESS RENDER
+═══════════════════════════════════════════════════════ */
+async function renderProgress() {
+  const xpData = await getXP(); updateTopBarXP(xpData);
+  await calcConsistency();
+  await renderWeeklySummary();
+  await renderBadges();
+}
+
+/* ═══════════════════════════════════════════════════════
+   BACKUP & RESTORE
+═══════════════════════════════════════════════════════ */
+const ALL_KEYS = ['cycle_tasks','cycle_data','daily_logs','vocab_state','saved_words','lecture_goals','revision_goals','todo_data','quick_notes','mood_data','streak_data','xp_data','earned_badges','flashcards','formulas','mistakes','books','exams','expenses','budget','study_sessions','saved_hindi','app_pin','pin_enabled'];
+
+async function getAllUserData() {
+  const data = { _backup_version: 3, _backup_date: new Date().toISOString(), _app: 'daily-tracker', _user: currentUser ? { name: currentUser.name, email: currentUser.email } : null };
+  for (const key of ALL_KEYS) { const val = await Store.get(key); if (val !== null) data[key] = val; }
+  return data;
+}
+
+async function downloadBackup() {
+  try {
+    const data = await getAllUserData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = `daily-tracker-backup-${todayStr()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  } catch(e) { alert('Download failed: ' + e.message); }
+}
+
+async function handleRestoreFile(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const statusIds = ['restoreStatus', 'restoreStatus2'];
+  statusIds.forEach(id => { const el = document.getElementById(id); if(el) { el.style.color='#7a4a20'; el.textContent='⏳ Reading file…'; } });
+  try {
+    const text = await file.text(), data = JSON.parse(text);
+    if (!data._app || data._app !== 'daily-tracker') throw new Error('Not a valid tracker backup file');
+    if (!confirm(`Restore backup from ${data._backup_date ? new Date(data._backup_date).toLocaleDateString() : 'unknown date'}?\n\nThis will REPLACE your current data. Cannot be undone.\n\nTap OK to continue.`)) {
+      statusIds.forEach(id => { const el=document.getElementById(id); if(el)el.textContent=''; }); event.target.value=''; return;
+    }
+    for (const key of ALL_KEYS) { if (key in data) await Store.set(key, data[key]); }
+    statusIds.forEach(id => { const el=document.getElementById(id); if(el){el.style.color='var(--accent2)';el.textContent='✅ Restored! Refreshing…';} });
+    setTimeout(async () => { closeModal('backupModal'); await bootApp(); event.target.value=''; }, 1600);
+  } catch(e) {
+    statusIds.forEach(id => { const el=document.getElementById(id); if(el){el.style.color='#b03030';el.textContent='❌ Failed: '+e.message;} });
+  }
+}
+
+function openBackupModal() { openModal('backupModal'); }
+
+/* ═══════════════════════════════════════════════════════
+   PWA
+═══════════════════════════════════════════════════════ */
+let _pwaPrompt = null;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+if (!isStandalone && !sessionStorage.getItem('inst_d')) {
+  if (isIOS) setTimeout(() => { document.getElementById('iosTip').style.display = 'block'; }, 3000);
+  else window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _pwaPrompt = e; document.getElementById('installBanner').style.display = 'block'; });
+}
+async function doInstall() { if (!_pwaPrompt) return; _pwaPrompt.prompt(); await _pwaPrompt.userChoice; _pwaPrompt = null; document.getElementById('installBanner').style.display = 'none'; }
+function dismissInstall() { sessionStorage.setItem('inst_d', '1'); document.getElementById('installBanner').style.display = 'none'; }
+
+/* ═══════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════ */
+async function bootApp() {
+  loadTheme();
+  try { renderDailyQuote(); } catch(e) {}
+  await updateStreak();
+  await loadMood();
+  await renderTodos();
+  await loadNotes();
+  await loadTimerSessions();
+  await renderTaskTabs();
+  await renderLog();
+  await initVocab();
+  await renderFlashcards();
+  await renderFormulas();
+  await renderMistakes();
+  await renderBooks();
+  await renderExamList();
+  await renderLectureGoals();
+  await renderRevisionGoals();
+  await renderExpenses();
+  await loadBudget();
+  initHindi();
+  await checkBadges();
+  const xpData = await getXP(); updateTopBarXP(xpData);
+}
+
+(async () => {
+  loadTheme();
+  renderDailyQuote();
+  var stored = localStorage.getItem('guser_session');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      afterSignIn();
+    } catch(e) {
+      localStorage.removeItem('guser_session');
+      // Show login screen
+      var ls = document.getElementById('loginScreen');
+      if (ls) ls.classList.remove('hidden');
+    }
+  } else {
+    // No session - show login screen
+    var ls = document.getElementById('loginScreen');
+    if (ls) ls.classList.remove('hidden');
+  }
+})();
+</script>
+
+</body>
+</html>
