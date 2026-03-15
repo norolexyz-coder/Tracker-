@@ -1,0 +1,58 @@
+{
+  "id": "/tracker/",
+  "name": "My Daily Tracker",
+  "short_name": "My Tracker",
+  "description": "Your personal daily habits, study, goals and vocabulary tracker",
+  "start_url": "/tracker/",
+  "scope": "/tracker/",
+  "display": "standalone",
+  "background_color": "#fce8e8",
+  "theme_color": "#f4c6c6",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "My Daily Tracker Home Screen"
+    }
+  ],
+  "categories": ["productivity", "education", "lifestyle"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Home",
+      "url": "/tracker/",
+      "description": "Open Daily Tracker"
+    }
+  ]
+}
