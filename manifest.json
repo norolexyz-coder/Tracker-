@@ -1,0 +1,25 @@
+{
+  "name": "My Daily Tracker",
+  "short_name": "My Tracker",
+  "description": "Daily habits, journal, goals and vocabulary tracker",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fce8e8",
+  "theme_color": "#f4c6c6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
