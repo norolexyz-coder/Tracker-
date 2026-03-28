@@ -18,17 +18,11 @@ document.addEventListener('click',function(e){
   var dd=document.getElementById('expSortDropdown');
   if(dd&&wrap&&!wrap.contains(e.target))dd.style.display='none';
 });
-
-document.addEventListener('change',function(e){
-  if(e.target&&e.target.id==='expAssetSrc'){
-    localStorage.setItem('exp_asset_src',e.target.value);
-  }
-});
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='expAssetSrc'){localStorage.setItem('exp_asset_src',e.target.value);}});
 
 /* ═══════════════════════════════════════
    EXPENSE CALENDAR
 ═══════════════════════════════════════ */
-
 var _expCalYear = null, _expCalMonth = null;
 
 function openExpCal() {
@@ -65,37 +59,30 @@ async function renderExpCal() {
   var budget = parseFloat(localStorage.getItem('exp_cal_budget')) || 0;
   var today = todayStr();
 
-  // Title
   var monthNames = ['January','February','March','April','May','June',
                     'July','August','September','October','November','December'];
   document.getElementById('expCalTitle').textContent = monthNames[month] + ' ' + year;
 
-  // Build day totals map
   var dayTotals = {};
   monthEx.forEach(function(e) {
     var d = e.date.split('-')[2];
     dayTotals[parseInt(d)] = (dayTotals[parseInt(d)] || 0) + e.amt;
   });
 
-  // Month total
   var monthTotal = monthEx.reduce(function(s, e) { return s + e.amt; }, 0);
   document.getElementById('expCalTotal').textContent = '₹' + monthTotal.toFixed(0);
 
-  // Build calendar grid
   var grid = document.getElementById('expCalGrid');
   var daysInMonth = new Date(year, month + 1, 0).getDate();
   var firstDay = new Date(year, month, 1).getDay(); // 0=Sun
 
   var html = '';
-  // Day labels
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d) {
     html += '<div class="exp-cal-day-lbl">' + d + '</div>';
   });
-  // Empty cells before first day
   for (var e2 = 0; e2 < firstDay; e2++) {
     html += '<div class="exp-cal-cell empty"></div>';
   }
-  // Day cells
   for (var day = 1; day <= daysInMonth; day++) {
     var dateStr = year + '-' + String(month + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
     var amt = dayTotals[day] || 0;
@@ -105,7 +92,9 @@ async function renderExpCal() {
     else if (budget > 0 && amt > budget) cls += ' over-budget';
     else if (budget > 0 && amt <= budget) cls += ' under-budget';
     var amtStr = amt > 0 ? '₹' + (amt >= 1000 ? (amt/1000).toFixed(1)+'k' : amt.toFixed(0)) : '';
-    html += '<div class="' + cls + '" onclick="openExpDay('' + dateStr + '')">'
+    
+    // FIX: Escaped the quotes around dateStr to prevent syntax errors
+    html += '<div class="' + cls + '" onclick="openExpDay(\'' + dateStr + '\')">'
           + '<span class="cal-date">' + day + '</span>'
           + (amtStr ? '<span class="cal-amt">' + amtStr + '</span>' : '')
           + '</div>';
@@ -121,13 +110,16 @@ async function openExpDay(dateStr) {
   document.getElementById('expDayTitle').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   var total = dayEx.reduce(function(s,e){return s+e.amt;},0);
   document.getElementById('expDayTotal').textContent = '₹' + total.toFixed(0);
-  var CAT_ICONS_LOCAL = {food:'??',transport:'??',study:'??',health:'??',shopping:'??',other:'??'};
+  
+  // FIX: Added actual emojis back instead of the '??' missing characters
+  var CAT_ICONS_LOCAL = {food:'🍔',transport:'🚗',study:'📚',health:'💊',shopping:'🛍',other:'📦'};
+  
   if (!dayEx.length) {
     document.getElementById('expDayList').innerHTML = '<div style="text-align:center;color:var(--muted);padding:16px;font-size:0.82rem">No expenses this day.</div>';
   } else {
     document.getElementById('expDayList').innerHTML = dayEx.map(function(e) {
       return '<div class="exp-day-item">'
-        + '<span style="font-size:1.1rem">' + (CAT_ICONS_LOCAL[e.cat]||'??') + '</span>'
+        + '<span style="font-size:1.1rem">' + (CAT_ICONS_LOCAL[e.cat]||'📦') + '</span>'
         + '<div style="flex:1"><div style="font-size:0.85rem;font-weight:600;color:var(--text)">' + e.desc + '</div>'
         + '<div style="font-size:0.65rem;color:var(--muted)">' + e.cat + '</div></div>'
         + '<span style="font-weight:700;color:var(--accent);font-size:0.9rem">₹' + e.amt.toFixed(0) + '</span>'
@@ -137,18 +129,17 @@ async function openExpDay(dateStr) {
   document.getElementById('expDayPopup').style.display = 'flex';
 }
 
-
 /* ═══════════════════════════════════════
    SECTION REORDER
 ═══════════════════════════════════════ */
 var STUDY_SECTIONS = [
   {id:'sec-timer',   icon:'⏱️', label:'Study Timer'},
   {id:'sec-journal', icon:'✍️', label:'Daily Journal'},
-  {id:'sec-notes',   icon:'??', label:'Subject Notes'},
-  {id:'sec-flash',   icon:'??️', label:'Flashcards'},
-  {id:'sec-formula', icon:'??', label:'Formula Sheet'},
+  {id:'sec-notes',   icon:'📋', label:'Subject Notes'},
+  {id:'sec-flash',   icon:'🃏', label:'Flashcards'},
+  {id:'sec-formula', icon:'📐', label:'Formula Sheet'},
   {id:'sec-mistake', icon:'❌', label:'Mistake Diary'},
-  {id:'sec-reading', icon:'??', label:'Reading Tracker'}
+  {id:'sec-reading', icon:'📖', label:'Reading Tracker'}
 ];
 
 function getSectionOrder() {
@@ -156,7 +147,6 @@ function getSectionOrder() {
   if (saved) {
     try {
       var arr = JSON.parse(saved);
-      // Validate — merge any new sections
       var ids = arr.map(function(x){return x.id;});
       STUDY_SECTIONS.forEach(function(s) {
         if (ids.indexOf(s.id) < 0) arr.push(s);
@@ -205,7 +195,6 @@ function renderReorderList() {
       + (i > 0 ? '<button onclick="moveSection(' + i + ',-1)" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:0.7rem;color:var(--text)">↑</button>' : '<span style="width:29px"></span>')
       + (i < _reorderOrder.length-1 ? '<button onclick="moveSection(' + i + ',1)" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:0.7rem;color:var(--text)">↓</button>' : '<span style="width:29px"></span>')
       + '</span>';
-    // Drag events
     div.addEventListener('dragstart', function(e) {
       _reorderDragIdx = parseInt(this.getAttribute('data-idx'));
       this.classList.add('dragging');
@@ -242,7 +231,6 @@ function saveReorder() {
   closeReorder();
   showToast('Layout saved!');
 }
-
 
 /* ═══════════════════════════════════════
    ASSET LEDGER
@@ -287,11 +275,10 @@ async function _recordAssetTxn(assetId, type, amount, reason) {
   var assets = (await Store.get('assets')) || [];
   var asset = assets.find(function(a) { return a.id === assetId; });
   if (!asset) return;
-  // Update balance
   if (type === 'credit') asset.amount = Math.round((asset.amount + amount) * 100) / 100;
   else                   asset.amount = Math.round((asset.amount - amount) * 100) / 100;
   await Store.set('assets', assets);
-  // Record in asset_ledger
+  
   var ledger = (await Store.get('asset_ledger')) || {};
   if (!ledger[assetId]) ledger[assetId] = [];
   ledger[assetId].push({ id: Date.now(), type: type, amount: amount, reason: reason, date: todayStr() });
@@ -302,13 +289,12 @@ async function _recordAssetTxn(assetId, type, amount, reason) {
 
 async function openAssetHistory(assetId, assetName) {
   var ledger = (await Store.get('asset_ledger')) || {};
-  var txns = (ledger[assetId] || []).slice().reverse(); // newest first
+  var txns = (ledger[assetId] || []).slice().reverse(); 
   document.getElementById('assetHistTitle').textContent = assetName;
   var el = document.getElementById('assetHistList');
   if (!txns.length) {
     el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:0.82rem">No transactions yet.</div>';
   } else {
-    // Running balance
     var assets = (await Store.get('assets')) || [];
     var asset = assets.find(function(a) { return a.id === assetId; }) || {};
     el.innerHTML = txns.map(function(t) {
@@ -323,7 +309,6 @@ async function openAssetHistory(assetId, assetName) {
   }
   openModal('assetHistModal');
 }
-
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
