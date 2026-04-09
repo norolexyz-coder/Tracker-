@@ -5267,17 +5267,22 @@ async function renderAssets(){
   var today=todayStr(), yest=addDays(today,-1);
   hist[today]=nw;
   (function(){var k=uk('nw_history');_cache[k]=hist;try{localStorage.setItem('t_'+k,JSON.stringify(hist));}catch(e){}})();
-  // Daily change: read asset_ledger entries dated TODAY only
-  // This prevents past-dated expense deductions appearing as "today's" change
+  // Daily change: asset_ledger (manual +/-) + today's expenses linked to assets
   var chEl=document.getElementById('nwDailyChange');
   if(chEl){
     try{
-      var assetLedger=(await Store.get('asset_ledger'))||{};
       var todayDelta=0;
+      // 1. Manual add/deduct transactions from asset_ledger
+      var assetLedger=(await Store.get('asset_ledger'))||{};
       Object.values(assetLedger).forEach(function(txns){
         (txns||[]).forEach(function(txn){
           if(txn.date===today){ todayDelta+=(txn.type==='credit'?txn.amount:-txn.amount); }
         });
+      });
+      // 2. Expense deductions dated TODAY (these bypass asset_ledger entirely)
+      var exps=(await Store.get('expenses'))||[];
+      exps.forEach(function(e){
+        if(e.date===today && e.assetId) todayDelta-=e.amt;
       });
       if(todayDelta!==0){
         chEl.textContent=(todayDelta>=0?'+':'')+'₹'+Math.abs(todayDelta).toLocaleString('en-IN')+' today';
